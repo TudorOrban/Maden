@@ -10,11 +10,14 @@ import (
 func InitAPIServer() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/pods", createPodHandler).Methods("POST")
-	r.HandleFunc("/pods", listPodsHandler).Methods("GET")
-	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
-	r.HandleFunc("/nodes", createNodeHandler).Methods("POST")
 	r.HandleFunc("/nodes", listNodesHandler).Methods("GET")
+	r.HandleFunc("/nodes", createNodeHandler).Methods("POST")
+	r.HandleFunc("/pods", listPodsHandler).Methods("GET")
+	r.HandleFunc("/pods", createPodHandler).Methods("POST")
+	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
+	r.HandleFunc("/deployments", listDeploymentsHandler).Methods("GET")
+	r.HandleFunc("/deployments", createDeploymentHandler).Methods("POST")
+
 	http.Handle("/", r)
 
 	fmt.Println("Server is running on http://localhost:8080")

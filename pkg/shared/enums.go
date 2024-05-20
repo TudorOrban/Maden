@@ -82,8 +82,10 @@ type ResourceType int
 const (
 	PodResource ResourceType = iota
 	NodeResource
+	DeploymentResource
+	ServiceResource
 )
 
 func (r ResourceType) String() string {
-	return [...]string{"Pod", "Node"}[r]
+	return [...]string{"Pod", "Node", "Deployment", "Service"}[r]
 }

@@ -32,3 +32,38 @@ type Resources struct {
 	CPU int `json:"cpu"`
 	Memory int `json:"memory"` // in MB
 }
+
+// Deployments
+type Deployment struct {
+	ID string `json:"id" yaml:"id"`
+	Name string `json:"name" yaml:"name"`
+	Replicas int `json:"replicas" yaml:"replicas"`
+	Selector map[string]string `json:"selector" yaml:"selector"`
+	Template PodTemplate `json:"template" yaml:"template"`
+}
+
+type PodTemplate struct {
+	Containers []Container `json:"containers" yaml:"containers"`
+}
+
+type Container struct {
+	Image string `json:"image" yaml:"image"`
+	Ports []Port `json:"ports" yaml:"ports"`
+}
+
+type Port struct {
+	ContainerPort int `json:"containerPort" yaml:"containerPort"`
+}
+
+// Services
+type Service struct {
+	ID string `json:"id" yaml:"id"`
+	Name string `json:"name" yaml:"name"`
+	Selector map[string]string `json:"selector" yaml:"selector"`
+	Ports []ServicePort `json:"ports" yaml:"ports"`
+}
+
+type ServicePort struct {
+	Port int `json:"port" yaml:"port"`
+	TargetPort int `json:"targetPort" yaml:"targetPort"`
+}

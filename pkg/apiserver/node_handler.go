@@ -10,6 +10,17 @@ import (
 	"net/http"
 )
 
+func listNodesHandler(w http.ResponseWriter, r *http.Request) {
+	nodes, err := etcd.ListNodes()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(nodes)
+}
+
 func createNodeHandler(w http.ResponseWriter, r *http.Request) {
 	var node shared.Node
 	if err := json.NewDecoder(r.Body).Decode(&node); err != nil {
@@ -32,14 +43,3 @@ func createNodeHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(node)
 }
 
-
-func listNodesHandler(w http.ResponseWriter, r *http.Request) {
-	nodes, err := etcd.ListNodes()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(nodes)
-}

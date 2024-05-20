@@ -1,0 +1,15 @@
+version: api/v1
+
+deployment:
+  name: example-deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+        - name: example
+          image: example:latest
+          ports:
+            - containerPort: 80
