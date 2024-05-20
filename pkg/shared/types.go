@@ -34,6 +34,11 @@ type Resources struct {
 }
 
 // Deployments
+type DeploymentSpec struct {
+    APIVersion string `yaml:"version"`
+    Deployment Deployment `yaml:"deployment"`
+}
+
 type Deployment struct {
 	ID string `json:"id" yaml:"id"`
 	Name string `json:"name" yaml:"name"`

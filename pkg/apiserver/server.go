@@ -8,6 +8,13 @@ import (
 )
 
 func InitAPIServer() {
+	registerRoutes()
+
+	fmt.Println("Server is running on http://localhost:8080")
+	http.ListenAndServe(":8080", nil)
+}
+
+func registerRoutes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/nodes", listNodesHandler).Methods("GET")
@@ -17,11 +24,9 @@ func InitAPIServer() {
 	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
 	r.HandleFunc("/deployments", listDeploymentsHandler).Methods("GET")
 	r.HandleFunc("/deployments", createDeploymentHandler).Methods("POST")
+	r.HandleFunc("/deployments/{id}", deleteDeploymentHandler).Methods("DELETE")
 
 	http.Handle("/", r)
-
-	fmt.Println("Server is running on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
