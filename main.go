@@ -14,7 +14,7 @@ func main() {
 	r.HandleFunc("/pods", createPodHandler).Methods("POST")
 	r.HandleFunc("/pods", listPodsHandler).Methods("GET")
 	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
-	r.HandleFunc("/nodes", registerNodeHandler).Methods("POST")
+	r.HandleFunc("/nodes", createNodeHandler).Methods("POST")
 	r.HandleFunc("/nodes", listNodesHandler).Methods("GET")
 	http.Handle("/", r)
 
@@ -26,8 +26,5 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the Maden API Server")
 }
 
-
-var nodeDB = []Node{}
-var podDB = []Pod{}
 var mu sync.Mutex
 

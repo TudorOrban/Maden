@@ -13,12 +13,6 @@ type ErrDuplicateResource struct {
 }
 
 func (e *ErrDuplicateResource) Error() string {
-	return fmt.Sprintf("a pod with ID %s already exists", e.ID)
+	return fmt.Sprintf("a %s with ID %s already exists", e.ResourceType.String(), e.ID)
 }
 
-type ResourceType int
-
-const (
-	PodResource ResourceType = iota
-	NodeResource
-)

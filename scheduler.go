@@ -1,21 +1,37 @@
 package main
 
 
-func schedulePod(pod *Pod) {
+func schedulePod(pod *Pod) error {
+	nodes, err := listNodes()
+	if err != nil {
+		return err
+	}
+
 	mu.Lock()
 	defer mu.Unlock()
 
-	for i, node := range nodeDB {
+	scheduled := false
+	for i, node := range nodes {
 		if shouldSchedulePod(&node, pod) {
 			pod.NodeID = node.ID
 			pod.Status = PodScheduled
-			nodeDB[i].Used.CPU += pod.Resources.CPU
-			nodeDB[i].Used.Memory += pod.Resources.Memory
-			return
+			nodes[i].Used.CPU += pod.Resources.CPU
+			nodes[i].Used.Memory += pod.Resources.Memory
+
+			if err := updateNode(&nodes[i]); err != nil {
+				return err
+			}
+
+			scheduled = true
+			break
 		}
 	}
 
-	pod.Status = PodPending
+	if !scheduled {
+		pod.Status = PodPending
+	}
+
+	return nil
 }
 
 func shouldSchedulePod(node *Node, pod *Pod) bool {

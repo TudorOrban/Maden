@@ -16,13 +16,15 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 	var pod Pod
 	if err := json.NewDecoder(r.Body).Decode(&pod); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println(err)
 		return
 	}
 
-	// schedulePod(&pod)
+	err := schedulePod(&pod)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error scheduling pod: %v", err), http.StatusInternalServerError)
+	}
 
-	if err := storePod(&pod); err != nil {
+	if err := createPod(&pod); err != nil {
 		var dupErr *ErrDuplicateResource
 		if errors.As(err, &dupErr) {
 			http.Error(w, dupErr.Error(), http.StatusConflict)
@@ -37,7 +39,7 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pod)
 }
 
-func storePod(pod *Pod) error {
+func createPod(pod *Pod) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 

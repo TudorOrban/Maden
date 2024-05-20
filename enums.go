@@ -75,3 +75,15 @@ func (p PodStatus) MarshalJSON() ([]byte, error) {
 func (p PodStatus) String() string {
 	return [...]string{"Pending", "Running", "Scheduled", "Failed"}[p]
 }
+
+
+type ResourceType int
+
+const (
+	PodResource ResourceType = iota
+	NodeResource
+)
+
+func (r ResourceType) String() string {
+	return [...]string{"Pod", "Node"}[r]
+}
