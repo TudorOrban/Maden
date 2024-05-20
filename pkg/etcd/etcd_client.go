@@ -1,14 +1,18 @@
-package main
+package etcd
 
 import (
 	"log"
+	"sync"
 	"time"
+
 	"go.etcd.io/etcd/client/v3"
 )
 
 var cli *clientv3.Client
 
-func initEtcd() {
+var Mu sync.Mutex
+
+func InitEtcd() {
 	var err error
 
 	cli, err = clientv3.New(clientv3.Config{

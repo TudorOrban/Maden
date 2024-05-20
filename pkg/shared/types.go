@@ -1,4 +1,4 @@
-package main
+package shared
 
 // Nodes
 type Node struct {
