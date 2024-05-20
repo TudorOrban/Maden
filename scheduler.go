@@ -1,12 +1,12 @@
 package main
 
+
 func schedulePod(pod *Pod) {
 	mu.Lock()
 	defer mu.Unlock()
 
 	for i, node := range nodeDB {
-		if node.Status == NodeReady && hasSufficentResources(&node, &pod.Resources) &&
-		   matchesAffinity(&node, pod) && matchesAntiAffinity(&node, pod) {
+		if shouldSchedulePod(&node, pod) {
 			pod.NodeID = node.ID
 			pod.Status = PodScheduled
 			nodeDB[i].Used.CPU += pod.Resources.CPU
@@ -16,6 +16,12 @@ func schedulePod(pod *Pod) {
 	}
 
 	pod.Status = PodPending
+}
+
+func shouldSchedulePod(node *Node, pod *Pod) bool {
+	return node.Status == NodeReady && hasSufficentResources(node, &pod.Resources) &&
+		matchesAffinity(node, pod) && matchesAntiAffinity(node, pod) &&
+		matchesTolerations(node, pod)
 }
 
 func hasSufficentResources(node *Node, req *Resources) bool {
@@ -36,6 +42,15 @@ func matchesAffinity(node *Node, pod *Pod) bool {
 func matchesAntiAffinity(node *Node, pod *Pod) bool {
 	for key, val := range pod.AntiAffinity {
 		if nodeVal, ok := node.Labels[key]; ok && nodeVal == val {
+			return false
+		}
+	}
+	return true
+}
+
+func matchesTolerations(node *Node, pod *Pod) bool {
+	for key, val := range node.Taints {
+		if toVal, ok := pod.Tolerations[key]; !ok || toVal != val {
 			return false
 		}
 	}

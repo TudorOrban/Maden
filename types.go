@@ -8,6 +8,7 @@ type Node struct {
 	Capacity Resources `json:"capacity"`
 	Used Resources `json:"used"`
 	Labels map[string]string `json:"labels"`
+	Taints map[string]string `json:"taints"`
 }
 
 type NodeCapacity struct {
@@ -24,6 +25,7 @@ type Pod struct {
 	Resources Resources `json:"resources"`
 	Affinity map[string]string `json:"affinity"`
 	AntiAffinity map[string]string `json:"antiAffinity"`
+	Tolerations map[string]string `json:"tolerations"`
 }
 
 type Resources struct {
