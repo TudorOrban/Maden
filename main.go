@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	initEtcd()
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/pods", createPodHandler).Methods("POST")
