@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -22,11 +23,16 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 	// schedulePod(&pod)
 
 	if err := storePod(&pod); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Error storing pod data in etcd: %v", err)
+		var dupErr *ErrDuplicateResource
+		if errors.As(err, &dupErr) {
+			http.Error(w, dupErr.Error(), http.StatusConflict)
+		} else {
+			http.Error(w, fmt.Sprintf("Error storing pod data in etcd: %v", err), http.StatusInternalServerError)
+		}
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(pod)
 }
@@ -40,45 +46,73 @@ func storePod(pod *Pod) error {
 		return err
 	}
 
-	_, err = cli.Put(ctx, "pods/" + pod.ID, string(podData))
-	return err
+	key := "pods/" + pod.ID
+
+	// Start transaction to prevent duplicates
+	txnResp, err := cli.Txn(ctx).
+		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
+		Then(clientv3.OpPut(key, string(podData))).
+		Else(clientv3.OpGet(key)).
+		Commit()
+
+	if err != nil {
+		return err
+	}
+	if !txnResp.Succeeded {
+		return &ErrDuplicateResource{ID: pod.ID, ResourceType: PodResource}
+	}
+
+	return nil
 }
 
 func listPodsHandler(w http.ResponseWriter, r *http.Request) {
+	pods, err := listPods()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pods)
+}
+
+func listPods() ([]Pod, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
 	resp, err := cli.Get(ctx, "pods/", clientv3.WithPrefix())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	pods := make([]Pod, 0)
 	for _, kv := range resp.Kvs {
 		var pod Pod
 		if err := json.Unmarshal(kv.Value, &pod); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return nil, err
 		}
 		pods = append(pods, pod)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(pods); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	return pods, nil
 }
 
 func deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]
+	podID := vars["id"]
 
-	deletePod(w, id)
+	if err := deletePod(podID); err != nil {
+		if err == ErrNotFound {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
-func deletePod(w http.ResponseWriter, podID string) {
+func deletePod(podID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
@@ -86,13 +120,11 @@ func deletePod(w http.ResponseWriter, podID string) {
 
 	resp, err := cli.Delete(ctx, key)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	if resp.Deleted == 0 {
-		w.WriteHeader(http.StatusNotFound)
-	} else {
-		w.WriteHeader(http.StatusNoContent)
+		return ErrNotFound
 	}
+	return nil
 }
