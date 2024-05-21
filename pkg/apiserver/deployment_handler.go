@@ -24,10 +24,10 @@ func listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
 
 func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	deploymentID := vars["id"]
+	deploymentName := vars["name"]
 
-	if err := etcd.DeleteDeployment(deploymentID); err != nil {
-		var errNotFound shared.ErrNotFound
+	if err := etcd.DeleteDeployment(deploymentName); err != nil {
+		var errNotFound *shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 		} else {

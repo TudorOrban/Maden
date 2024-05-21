@@ -76,7 +76,7 @@ This command will delete the node with ID 1234 from the system`,
 	Run: func(cmd *cobra.Command, args []string) {
 		nodeID := args[0]
 
-		continueDelete := addConfirmationPrompt(nodeID)
+		continueDelete := addNodeConfirmationPrompt(nodeID)
 		if !continueDelete {
 			return
 		}
@@ -90,7 +90,7 @@ This command will delete the node with ID 1234 from the system`,
 	},
 }
 
-func addConfirmationPrompt(nodeID string) bool {
+func addNodeConfirmationPrompt(nodeID string) bool {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Printf("Warning: This will delete node %s and all associated pods. Continue? (y/n): ", nodeID)
 	

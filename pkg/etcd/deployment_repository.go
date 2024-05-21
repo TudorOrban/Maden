@@ -98,11 +98,11 @@ func UpdateDeployment(deployment *shared.Deployment) error {
     return nil
 }
 
-func DeleteDeployment(deploymentID string) error {
+func DeleteDeployment(deploymentName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	key := deploymentsKey + deploymentID
+	key := deploymentsKey + deploymentName
 
 	resp, err := cli.Delete(ctx, key)
 	if err != nil {
@@ -110,7 +110,7 @@ func DeleteDeployment(deploymentID string) error {
 	}
 
 	if resp.Deleted == 0 {
-		return &shared.ErrNotFound{ID: deploymentID, ResourceType: shared.DeploymentResource}
+		return &shared.ErrNotFound{ID: deploymentName, ResourceType: shared.DeploymentResource}
 	}
 	return nil
 }

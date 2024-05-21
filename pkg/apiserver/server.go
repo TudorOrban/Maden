@@ -24,7 +24,7 @@ func registerRoutes() {
 	r.HandleFunc("/pods", createPodHandler).Methods("POST")
 	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
 	r.HandleFunc("/deployments", listDeploymentsHandler).Methods("GET")
-	r.HandleFunc("/deployments/{id}", deleteDeploymentHandler).Methods("DELETE")
+	r.HandleFunc("/deployments/{name}", deleteDeploymentHandler).Methods("DELETE")
 	r.HandleFunc("/services", listServicesHandler).Methods("GET")
 	r.HandleFunc("/services/{id}", deleteServiceHandler).Methods("DELETE")
 	r.HandleFunc("/manifests", handleMadenResources).Methods("POST")
