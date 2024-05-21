@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"maden/pkg/shared"
+	"strings"
+
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
-	"maden/pkg/shared"
 	"net/http"
 	"os"
 
@@ -36,25 +39,30 @@ var getNodesCmd = &cobra.Command{
 			return
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"ID", "Name", "Status", "CPU (Capacity)", "CPU (Used)", "Memory (Capacity)", "Memory (Used)"})
-		table.SetBorder(false)
-
-		for _, node := range nodes {
-			table.Append([]string{
-				node.ID,
-				node.Name,
-				node.Status.String(),
-				fmt.Sprint(node.Capacity.CPU),
-				fmt.Sprint(node.Used.CPU),
-				fmt.Sprint(node.Capacity.Memory),
-				fmt.Sprint(node.Used.Memory),
-			})
-		}
-
-		table.Render()
+		displayNodes(nodes)
 	},
 }
+
+func displayNodes(nodes []shared.Node) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Status", "CPU (Capacity)", "CPU (Used)", "Memory (Capacity)", "Memory (Used)"})
+	table.SetBorder(false)
+
+	for _, node := range nodes {
+		table.Append([]string{
+			node.ID,
+			node.Name,
+			node.Status.String(),
+			fmt.Sprint(node.Capacity.CPU),
+			fmt.Sprint(node.Used.CPU),
+			fmt.Sprint(node.Capacity.Memory),
+			fmt.Sprint(node.Used.Memory),
+		})
+	}
+
+	table.Render()
+}
+
 
 var deleteNodeCmd = &cobra.Command{
 	Use: "node [nodeID]",
@@ -67,6 +75,12 @@ This command will delete the node with ID 1234 from the system`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		nodeID := args[0]
+
+		continueDelete := addConfirmationPrompt(nodeID)
+		if !continueDelete {
+			return
+		}
+		
 		err := deleteNode(nodeID)
 		if err != nil {
 			fmt.Printf("Error deleting node: %s\n", err)
@@ -76,6 +90,23 @@ This command will delete the node with ID 1234 from the system`,
 	},
 }
 
+func addConfirmationPrompt(nodeID string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Warning: This will delete node %s and all associated pods. Continue? (y/n): ", nodeID)
+	
+	response, err := reader.ReadString('\n')
+	response = strings.TrimSpace(response)
+	if err != nil {
+		fmt.Printf("Error reading input: %s\n", err)
+		return false
+	}
+	if strings.ToLower(response) != "y" {
+		fmt.Println("Deletion aborted.")
+		return false
+	}
+
+	return true
+}
 
 func deleteNode(nodeID string) error {
 	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8080/nodes/%s", nodeID), nil)

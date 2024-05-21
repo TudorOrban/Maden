@@ -36,23 +36,27 @@ var getPodsCmd = &cobra.Command{
 			return
 		}
 
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"ID", "Name", "Status", "Node ID", "CPU", "Memory (MB)"})
-		table.SetBorder(false)
-
-		for _, pod := range pods {
-			table.Append([]string{
-				pod.ID,
-				pod.Name,
-				pod.Status.String(),
-				pod.NodeID,
-				fmt.Sprint(pod.Resources.CPU),
-				fmt.Sprint(pod.Resources.Memory),
-			})
-		}
-
-		table.Render()
+		displayPods(pods)
 	},
+}
+
+func displayPods(pods []shared.Pod) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"ID", "Name", "Status", "Node ID", "CPU", "Memory (MB)"})
+	table.SetBorder(false)
+
+	for _, pod := range pods {
+		table.Append([]string{
+			pod.ID,
+			pod.Name,
+			pod.Status.String(),
+			pod.NodeID,
+			fmt.Sprint(pod.Resources.CPU),
+			fmt.Sprint(pod.Resources.Memory),
+		})
+	}
+
+	table.Render()
 }
 
 var deletePodCmd = &cobra.Command{
