@@ -67,6 +67,10 @@ type PodTemplate struct {
 
 type PodSpec struct {
 	Containers []Container `json:"containers" yaml:"containers"`
+	Resources Resources `json:"resources" yaml:"resources"`
+	Affinity map[string]string `json:"affinity" yaml:"affinity"`
+	AntiAffinity map[string]string `json:"antiAffinity" yaml:"antiAffinity"`
+	Tolerations map[string]string `json:"tolerations" yaml:"tolerations"`
 }
 
 type Metadata struct {
