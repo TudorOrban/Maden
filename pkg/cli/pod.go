@@ -13,7 +13,7 @@ import (
 )
 
 var getPodsCmd = &cobra.Command{
-	Use:   "get",
+	Use: "get pod",
 	Short: "Fetches current Maden pods",
 	Long: `Fetches the currently active Maden pods by hitting the API server`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -54,7 +54,49 @@ var getPodsCmd = &cobra.Command{
 	},
 }
 
+var deletePodCmd = &cobra.Command{
+	Use: "delete pod [podID]",
+	Short: "Deletes a Maden pod",
+	Long: `Deletes a Maden pod by ID. For example:
+	
+maden delete pod 1234
+
+This command will delete the pod with ID 1234 from the system`,
+	Args: cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		podID := args[1]
+		err := deletePod(podID)
+		if err != nil {
+			fmt.Printf("Error deleting pod: %s\n", err)
+			return
+		}
+		fmt.Printf("Pod %s deleted successfully\n", podID)
+	},
+}
+
+
+func deletePod(podID string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8080/pods/%s", podID), nil)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("failed to delete pod with status: %s", response.Status)
+	}
+
+	return nil
+}
+
 func init() {
 	rootCmd.AddCommand(getPodsCmd)
+	rootCmd.AddCommand(deletePodCmd)
 
 }
