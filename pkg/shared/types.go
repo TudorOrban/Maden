@@ -33,22 +33,44 @@ type Resources struct {
 	Memory int `json:"memory"` // in MB
 }
 
-// Deployments
+// Deployments & Services
+type MadenResource struct {
+	APIVersion string `json:"apiVersion" yaml:"apiVersion"`
+	Kind string `json:"kind" yaml:"kind"`
+	Spec interface{} `json:"spec" yaml:"spec"`
+}
+
+// - Deployments
 type DeploymentSpec struct {
-    APIVersion string `yaml:"version"`
-    Deployment Deployment `yaml:"deployment"`
+	Name string `json:"name" yaml:"name"`
+    Replicas int `json:"replicas" yaml:"replicas"`
+    Selector LabelSelector `json:"selector" yaml:"selector"`
+    Template PodTemplate `json:"template" yaml:"template"`
+}
+
+type LabelSelector struct {
+	MatchLabels map[string]string `json:"matchLabels" yaml:"matchLabels"`
 }
 
 type Deployment struct {
 	ID string `json:"id" yaml:"id"`
 	Name string `json:"name" yaml:"name"`
 	Replicas int `json:"replicas" yaml:"replicas"`
-	Selector map[string]string `json:"selector" yaml:"selector"`
+    Selector LabelSelector `json:"selector" yaml:"selector"`
 	Template PodTemplate `json:"template" yaml:"template"`
 }
 
 type PodTemplate struct {
+	Metadata Metadata `json:"metadata" yaml:"metadata"`
+	Spec PodSpec `json:"spec" yaml:"spec"`
+}
+
+type PodSpec struct {
 	Containers []Container `json:"containers" yaml:"containers"`
+}
+
+type Metadata struct {
+	Labels map[string]string `json:"labels" yaml:"labels"`
 }
 
 type Container struct {
@@ -60,7 +82,13 @@ type Port struct {
 	ContainerPort int `json:"containerPort" yaml:"containerPort"`
 }
 
-// Services
+// - Services
+type ServiceSpec struct {
+	Name string `json:"name" yaml:"name"`
+	Selector map[string]string `json:"selector" yaml:"selector"`
+	Ports []ServicePort `json:"ports" yaml:"ports"`
+}
+
 type Service struct {
 	ID string `json:"id" yaml:"id"`
 	Name string `json:"name" yaml:"name"`

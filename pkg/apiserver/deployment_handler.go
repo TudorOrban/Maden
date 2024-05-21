@@ -5,12 +5,13 @@ import (
 	"maden/pkg/shared"
 
 	"encoding/json"
-	"errors"
+	// "errors"
 	"fmt"
 	"io"
 	"net/http"
+	"bytes"
 
-	"github.com/gorilla/mux"
+	// "github.com/gorilla/mux"
 	"gopkg.in/yaml.v3"
 )
 
@@ -26,7 +27,56 @@ func listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func createDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+// func createDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+// 	body, err := io.ReadAll(r.Body)
+// 	if err != nil {
+// 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+// 		return
+// 	}
+// 	defer r.Body.Close()
+
+	
+//     fmt.Println("Received YAML:", string(body))
+
+// 	var deploymentSpec shared.DeploymentSpec
+//     if err := yaml.Unmarshal(body, &deploymentSpec); err != nil {
+//         http.Error(w, "Failed to parse YAML: "+err.Error(), http.StatusBadRequest)
+//         return
+//     }
+
+// 	if err := etcd.CreateDeployment(&deploymentSpec.Deployment); err != nil {
+// 		var dupErr *shared.ErrDuplicateResource
+// 		if errors.As(err, &dupErr) {
+// 			http.Error(w, dupErr.Error(), http.StatusConflict)
+// 		} else {
+// 			http.Error(w, fmt.Sprintf("Error storing deployment data in etcd: %v", err), http.StatusInternalServerError)
+// 		}
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusCreated)
+// 	json.NewEncoder(w).Encode(deploymentSpec.Deployment)
+// }
+
+// func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+// 	deploymentID := vars["id"]
+
+// 	if err := etcd.DeleteDeployment(deploymentID); err != nil {
+// 		if err == shared.ErrNotFound {
+// 			w.WriteHeader(http.StatusNotFound)
+// 		} else {
+// 			http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		}
+// 		return
+// 	}
+
+// 	w.WriteHeader(http.StatusNoContent)
+// }
+
+
+func handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -34,42 +84,65 @@ func createDeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	
-    fmt.Println("Received YAML:", string(body))
+	decoder := yaml.NewDecoder(bytes.NewReader(body))
 
-	var deploymentSpec shared.DeploymentSpec
-    if err := yaml.Unmarshal(body, &deploymentSpec); err != nil {
-        http.Error(w, "Failed to parse YAML: "+err.Error(), http.StatusBadRequest)
-        return
-    }
-
-	if err := etcd.CreateDeployment(&deploymentSpec.Deployment); err != nil {
-		var dupErr *shared.ErrDuplicateResource
-		if errors.As(err, &dupErr) {
-			http.Error(w, dupErr.Error(), http.StatusConflict)
-		} else {
-			http.Error(w, fmt.Sprintf("Error storing deployment data in etcd: %v", err), http.StatusInternalServerError)
+	for {
+		var resource shared.MadenResource
+		err := decoder.Decode(&resource)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			http.Error(w, "Failed to parse YAML: " + err.Error(), http.StatusBadRequest)
+			return
 		}
-		return
+
+		switch resource.Kind {
+		case "Deployment":
+			handleDeployment(resource)
+		case "Service":
+			handleService(resource)
+		default:
+			fmt.Fprintf(w, "Unsupported kind: %s", resource.Kind)
+		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(deploymentSpec.Deployment)
 }
 
-func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	deploymentID := vars["id"]
-
-	if err := etcd.DeleteDeployment(deploymentID); err != nil {
-		if err == shared.ErrNotFound {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+func handleDeployment(resource shared.MadenResource) {
+	var deploymentSpec shared.DeploymentSpec
+	specBytes, err := json.Marshal(resource.Spec)
+	if err != nil {
+		fmt.Println("Error marshaling deployment spec: ", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	err = json.Unmarshal(specBytes, &deploymentSpec)
+	if err != nil {
+		fmt.Println("Error unmarshaling deployment spec: ", err)
+		return
+	}
+
+	fmt.Printf("Handling Deployment: %+v\n", deploymentSpec)
+
+	
+}
+
+func handleService(resource shared.MadenResource) {
+	var serviceSpec shared.ServiceSpec
+	specBytes, err := json.Marshal(resource.Spec)
+	if err != nil {
+		fmt.Println("Error marshaling service spec: ", err)
+		return
+	}
+
+	err = json.Unmarshal(specBytes, &serviceSpec)
+	if err != nil {
+		fmt.Println("Error unmarshaling service spec: ", err)
+		return
+	}
+
+	fmt.Printf("Handling Service: %+v\n", serviceSpec)
+
 }
