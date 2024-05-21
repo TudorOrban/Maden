@@ -13,7 +13,7 @@ import (
 )
 
 var getPodsCmd = &cobra.Command{
-	Use: "get pod",
+	Use: "pod",
 	Short: "Fetches current Maden pods",
 	Long: `Fetches the currently active Maden pods by hitting the API server`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -38,6 +38,7 @@ var getPodsCmd = &cobra.Command{
 
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"ID", "Name", "Status", "Node ID", "CPU", "Memory (MB)"})
+		table.SetBorder(false)
 
 		for _, pod := range pods {
 			table.Append([]string{
@@ -55,16 +56,16 @@ var getPodsCmd = &cobra.Command{
 }
 
 var deletePodCmd = &cobra.Command{
-	Use: "delete pod [podID]",
+	Use: "pod [podID]",
 	Short: "Deletes a Maden pod",
 	Long: `Deletes a Maden pod by ID. For example:
 	
 maden delete pod 1234
 
 This command will delete the pod with ID 1234 from the system`,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		podID := args[1]
+		podID := args[0]
 		err := deletePod(podID)
 		if err != nil {
 			fmt.Printf("Error deleting pod: %s\n", err)
@@ -96,7 +97,7 @@ func deletePod(podID string) error {
 }
 
 func init() {
-	rootCmd.AddCommand(getPodsCmd)
-	rootCmd.AddCommand(deletePodCmd)
+	getCmd.AddCommand(getPodsCmd)
+	deleteCmd.AddCommand(deletePodCmd)
 
 }

@@ -17,6 +17,18 @@ var rootCmd = &cobra.Command{
 examples and usage of using your application. For example:....`,
 }
 
+var getCmd = &cobra.Command{
+	Use: "get",
+	Short: "Get resources",
+	Long: `Get resources from the Maden API server`,
+}
+
+var deleteCmd = &cobra.Command{
+	Use: "delete",
+	Short: "Delete resources",
+	Long: `Delete resources from the Maden API server`,
+}
+
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -26,6 +38,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	rootCmd.AddCommand(getCmd)
+	rootCmd.AddCommand(deleteCmd)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.madencli.yaml)")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

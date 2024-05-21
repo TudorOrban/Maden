@@ -1,13 +1,15 @@
 package apiserver
 
 import (
-	"maden/pkg/shared"
 	"maden/pkg/etcd"
+	"maden/pkg/shared"
 
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func listNodesHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,5 +43,22 @@ func createNodeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(node)
+}
+
+func deleteNodeHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	nodeID := vars["id"]
+
+	if err := etcd.DeleteNode(nodeID); err != nil {
+		var notFoundErr *shared.ErrNotFound
+		if errors.As(err, &notFoundErr) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 

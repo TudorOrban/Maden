@@ -19,6 +19,7 @@ func registerRoutes() {
 	r.HandleFunc("/", HomeHandler)
 	r.HandleFunc("/nodes", listNodesHandler).Methods("GET")
 	r.HandleFunc("/nodes", createNodeHandler).Methods("POST")
+	r.HandleFunc("/nodes/{id}", deleteNodeHandler).Methods("DELETE")
 	r.HandleFunc("/pods", listPodsHandler).Methods("GET")
 	r.HandleFunc("/pods", createPodHandler).Methods("POST")
 	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
