@@ -24,9 +24,9 @@ func listServicesHandler(w http.ResponseWriter, r *http.Request) {
 
 func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	serviceID := vars["id"]
+	serviceName := vars["name"]
 
-	if err := etcd.DeleteService(serviceID); err != nil {
+	if err := etcd.DeleteService(serviceName); err != nil {
 		var errNotFound shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)

@@ -98,11 +98,11 @@ func UpdateService(service *shared.Service) error {
     return nil
 }
 
-func DeleteService(serviceID string) error {
+func DeleteService(serviceName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	key := servicesKey + serviceID
+	key := servicesKey + serviceName
 
 	resp, err := cli.Delete(ctx, key)
 	if err != nil {
@@ -110,7 +110,7 @@ func DeleteService(serviceID string) error {
 	}
 
 	if resp.Deleted == 0 {
-		return &shared.ErrNotFound{ID: serviceID, ResourceType: shared.ServiceResource}
+		return &shared.ErrNotFound{ID: serviceName, ResourceType: shared.ServiceResource}
 	}
 	return nil
 }

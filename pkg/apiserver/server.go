@@ -26,7 +26,7 @@ func registerRoutes() {
 	r.HandleFunc("/deployments", listDeploymentsHandler).Methods("GET")
 	r.HandleFunc("/deployments/{name}", deleteDeploymentHandler).Methods("DELETE")
 	r.HandleFunc("/services", listServicesHandler).Methods("GET")
-	r.HandleFunc("/services/{id}", deleteServiceHandler).Methods("DELETE")
+	r.HandleFunc("/services/{name}", deleteServiceHandler).Methods("DELETE")
 	r.HandleFunc("/manifests", handleMadenResources).Methods("POST")
 
 	http.Handle("/", r)
