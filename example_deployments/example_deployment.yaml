@@ -2,7 +2,7 @@ version: api/v1
 kind: Deployment
 spec:
   name: example-deployment
-  replicas: 1
+  replicas: 2
   selector:
     app: example
   template:

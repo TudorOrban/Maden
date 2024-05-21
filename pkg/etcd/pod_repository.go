@@ -72,7 +72,7 @@ func DeletePod(podID string) error {
 	}
 
 	if resp.Deleted == 0 {
-		return shared.ErrNotFound
+		return &shared.ErrNotFound{ID: podID, ResourceType: shared.PodResource}
 	}
 	return nil
 }

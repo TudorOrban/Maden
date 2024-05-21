@@ -1,15 +1,16 @@
 package apiserver
 
 import (
+	"maden/pkg/controller"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
 
 	"encoding/json"
 	// "errors"
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
-	"bytes"
 
 	// "github.com/gorilla/mux"
 	"gopkg.in/yaml.v3"
@@ -99,7 +100,10 @@ func handleMadenResources(w http.ResponseWriter, r *http.Request) {
 
 		switch resource.Kind {
 		case "Deployment":
-			handleDeployment(resource)
+			err := handleDeployment(resource)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 		case "Service":
 			handleService(resource)
 		default:
@@ -110,23 +114,23 @@ func handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func handleDeployment(resource shared.MadenResource) {
+func handleDeployment(resource shared.MadenResource) error {
 	var deploymentSpec shared.DeploymentSpec
 	specBytes, err := json.Marshal(resource.Spec)
 	if err != nil {
 		fmt.Println("Error marshaling deployment spec: ", err)
-		return
+		return err
 	}
 
 	err = json.Unmarshal(specBytes, &deploymentSpec)
 	if err != nil {
 		fmt.Println("Error unmarshaling deployment spec: ", err)
-		return
+		return err
 	}
 
 	fmt.Printf("Handling Deployment: %+v\n", deploymentSpec)
 
-	
+	return controller.HandleIncomingDeployment(deploymentSpec)
 }
 
 func handleService(resource shared.MadenResource) {

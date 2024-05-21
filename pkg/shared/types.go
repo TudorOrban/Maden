@@ -48,16 +48,16 @@ type DeploymentSpec struct {
     Template PodTemplate `json:"template" yaml:"template"`
 }
 
-type LabelSelector struct {
-	MatchLabels map[string]string `json:"matchLabels" yaml:"matchLabels"`
-}
-
 type Deployment struct {
 	ID string `json:"id" yaml:"id"`
 	Name string `json:"name" yaml:"name"`
 	Replicas int `json:"replicas" yaml:"replicas"`
     Selector LabelSelector `json:"selector" yaml:"selector"`
 	Template PodTemplate `json:"template" yaml:"template"`
+}
+
+type LabelSelector struct {
+	MatchLabels map[string]string `json:"matchLabels" yaml:"matchLabels"`
 }
 
 type PodTemplate struct {

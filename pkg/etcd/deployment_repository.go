@@ -32,6 +32,26 @@ func ListDeployments() ([]shared.Deployment, error) {
 	return deployments, nil
 }
 
+func GetDeploymentByName(name string) (*shared.Deployment, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+    defer cancel()
+
+	key := deploymentsKey + name
+	resp, err := cli.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.Kvs) == 0 {
+		return nil, &shared.ErrNotFound{Name: name, ResourceType: shared.DeploymentResource}
+	}
+
+	var deployment shared.Deployment
+	if err := json.Unmarshal(resp.Kvs[0].Value, &deployment); err != nil {
+		return nil, err
+	}
+	return &deployment, nil
+} 
+
 func CreateDeployment(deployment *shared.Deployment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
@@ -59,6 +79,25 @@ func CreateDeployment(deployment *shared.Deployment) error {
 	return nil
 }
 
+func UpdateDeployment(deployment *shared.Deployment) error {
+    ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+    defer cancel()
+
+    deploymentData, err := json.Marshal(deployment)
+    if err != nil {
+        return err
+    }
+
+    key := deploymentsKey + deployment.Name
+
+    _, err = cli.Put(ctx, key, string(deploymentData))
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
 func DeleteDeployment(deploymentID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
@@ -71,7 +110,7 @@ func DeleteDeployment(deploymentID string) error {
 	}
 
 	if resp.Deleted == 0 {
-		return shared.ErrNotFound
+		return &shared.ErrNotFound{ID: deploymentID, ResourceType: shared.DeploymentResource}
 	}
 	return nil
 }

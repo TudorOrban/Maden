@@ -58,7 +58,8 @@ func deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	podID := vars["id"]
 
 	if err := etcd.DeletePod(podID); err != nil {
-		if err == shared.ErrNotFound {
+		var notFoundErr *shared.ErrNotFound
+		if errors.As(err, &notFoundErr) {
 			w.WriteHeader(http.StatusNotFound)
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
