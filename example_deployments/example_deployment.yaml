@@ -1,8 +1,8 @@
 version: api/v1
 kind: Deployment
 spec:
-  name: example-deployment-4
-  replicas: 2
+  name: example-deployment-6
+  replicas: 1
   selector:
     matchLabels:
       app: example

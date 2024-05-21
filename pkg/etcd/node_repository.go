@@ -16,7 +16,7 @@ func ListNodes() ([]shared.Node, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := cli.Get(ctx, nodesKey, clientv3.WithPrefix())
+	resp, err := Cli.Get(ctx, nodesKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func CreateNode(node *shared.Node) error {
 	key := nodesKey + node.ID
 
 	// Start transaction to prevent duplicates
-	txnResp, err := cli.Txn(ctx).
+	txnResp, err := Cli.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(nodeData))).
 		Else(clientv3.OpGet(key)).
@@ -70,7 +70,7 @@ func UpdateNode(node *shared.Node) error {
     }
 
     key := nodesKey + node.ID
-    _, err = cli.Put(ctx, key, string(nodeData))
+    _, err = Cli.Put(ctx, key, string(nodeData))
     return err
 }
 
@@ -80,7 +80,7 @@ func DeleteNode(nodeID string) error {
 
 	key := nodesKey + nodeID
 
-	resp, err := cli.Delete(ctx, key)
+	resp, err := Cli.Delete(ctx, key)
 	if err != nil {
 		return err
 	}

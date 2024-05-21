@@ -16,7 +16,7 @@ func ListDeployments() ([]shared.Deployment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := cli.Get(ctx, deploymentsKey, clientv3.WithPrefix())
+	resp, err := Cli.Get(ctx, deploymentsKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func GetDeploymentByName(name string) (*shared.Deployment, error) {
     defer cancel()
 
 	key := deploymentsKey + name
-	resp, err := cli.Get(ctx, key)
+	resp, err := Cli.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func CreateDeployment(deployment *shared.Deployment) error {
 
 	key := deploymentsKey + deployment.Name
 
-	txnResp, err := cli.Txn(ctx).
+	txnResp, err := Cli.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(deploymentData))).
 		Else(clientv3.OpGet(key)).
@@ -90,7 +90,7 @@ func UpdateDeployment(deployment *shared.Deployment) error {
 
     key := deploymentsKey + deployment.Name
 
-    _, err = cli.Put(ctx, key, string(deploymentData))
+    _, err = Cli.Put(ctx, key, string(deploymentData))
     if err != nil {
         return err
     }
@@ -104,7 +104,7 @@ func DeleteDeployment(deploymentName string) error {
 
 	key := deploymentsKey + deploymentName
 
-	resp, err := cli.Delete(ctx, key)
+	resp, err := Cli.Delete(ctx, key)
 	if err != nil {
 		return err
 	}

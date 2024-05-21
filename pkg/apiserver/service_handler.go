@@ -27,7 +27,7 @@ func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
 	serviceName := vars["name"]
 
 	if err := etcd.DeleteService(serviceName); err != nil {
-		var errNotFound shared.ErrNotFound
+		var errNotFound *shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 		} else {

@@ -8,14 +8,14 @@ import (
 	"go.etcd.io/etcd/client/v3"
 )
 
-var cli *clientv3.Client
+var Cli *clientv3.Client
 
 var Mu sync.Mutex
 
 func InitEtcd() {
 	var err error
 
-	cli, err = clientv3.New(clientv3.Config{
+	Cli, err = clientv3.New(clientv3.Config{
 		Endpoints: []string{"etcd:2379"},
 		DialTimeout: 5 * time.Second,
 	})

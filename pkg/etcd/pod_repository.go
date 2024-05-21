@@ -24,7 +24,7 @@ func CreatePod(pod *shared.Pod) error {
 	key := podsKey + pod.ID
 
 	// Start transaction to prevent duplicates
-	txnResp, err := cli.Txn(ctx).
+	txnResp, err := Cli.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(podData))).
 		Else(clientv3.OpGet(key)).
@@ -44,7 +44,7 @@ func ListPods() ([]shared.Pod, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := cli.Get(ctx, podsKey, clientv3.WithPrefix())
+	resp, err := Cli.Get(ctx, podsKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func DeletePod(podID string) error {
 
 	key := podsKey + podID
 
-	resp, err := cli.Delete(ctx, key)
+	resp, err := Cli.Delete(ctx, key)
 	if err != nil {
 		return err
 	}

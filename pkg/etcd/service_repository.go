@@ -16,7 +16,7 @@ func ListServices() ([]shared.Service, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := cli.Get(ctx, servicesKey, clientv3.WithPrefix())
+	resp, err := Cli.Get(ctx, servicesKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func GetServiceByName(name string) (*shared.Service, error) {
     defer cancel()
 
 	key := servicesKey + name
-	resp, err := cli.Get(ctx, key)
+	resp, err := Cli.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func CreateService(service *shared.Service) error {
 
 	key := servicesKey + service.Name
 
-	txnResp, err := cli.Txn(ctx).
+	txnResp, err := Cli.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(serviceData))).
 		Else(clientv3.OpGet(key)).
@@ -90,7 +90,7 @@ func UpdateService(service *shared.Service) error {
 
     key := servicesKey + service.Name
 
-    _, err = cli.Put(ctx, key, string(serviceData))
+    _, err = Cli.Put(ctx, key, string(serviceData))
     if err != nil {
         return err
     }
@@ -104,7 +104,7 @@ func DeleteService(serviceName string) error {
 
 	key := servicesKey + serviceName
 
-	resp, err := cli.Delete(ctx, key)
+	resp, err := Cli.Delete(ctx, key)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,8 @@ package apiserver
 
 import (
 	"fmt"
+	"log"
+	"maden/pkg/controller"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,8 +12,13 @@ import (
 func InitAPIServer() {
 	registerRoutes()
 
+	go controller.WatchDeployments()
+
 	fmt.Println("Server is running on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+	
 }
 
 func registerRoutes() {
