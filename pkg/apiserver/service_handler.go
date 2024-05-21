@@ -11,22 +11,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
-	deployments, err := etcd.ListDeployments()
+func listServicesHandler(w http.ResponseWriter, r *http.Request) {
+	services, err := etcd.ListServices()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(deployments)
+	json.NewEncoder(w).Encode(services)
 }
 
-func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	deploymentID := vars["id"]
+	serviceID := vars["id"]
 
-	if err := etcd.DeleteDeployment(deploymentID); err != nil {
+	if err := etcd.DeleteService(serviceID); err != nil {
 		var errNotFound shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -38,4 +38,3 @@ func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
-

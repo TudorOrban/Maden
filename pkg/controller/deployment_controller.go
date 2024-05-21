@@ -3,7 +3,7 @@ package controller
 import (
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
-	
+
 	"fmt"
 )
 
@@ -19,7 +19,7 @@ func HandleIncomingDeployment(deploymentSpec shared.DeploymentSpec) error {
 		}
 	}
 
-	if needsUpdate(deploymentSpec, existingDeployment) {
+	if needsDeploymentUpdate(deploymentSpec, existingDeployment) {
 		fmt.Println("Updating deployment")
 		existingDeployment := updateExistingDeployment(deploymentSpec, existingDeployment)
 		return etcd.UpdateDeployment(&existingDeployment)
@@ -41,8 +41,10 @@ func transformToDeployment(spec shared.DeploymentSpec) shared.Deployment {
 	return deployment
 }
 
-func needsUpdate(spec shared.DeploymentSpec, existing *shared.Deployment) bool {
-	return spec.Replicas != existing.Replicas
+func needsDeploymentUpdate(spec shared.DeploymentSpec, existing *shared.Deployment) bool {
+	return spec.Replicas != existing.Replicas || 
+	!areSelectorsEqual(spec.Selector, existing.Selector) || 
+	!arePodTemplatesEqual(spec.Template, existing.Template)
 }
 
 func updateExistingDeployment(spec shared.DeploymentSpec, existing *shared.Deployment) shared.Deployment {
@@ -50,4 +52,43 @@ func updateExistingDeployment(spec shared.DeploymentSpec, existing *shared.Deplo
 	(*existing).Selector = spec.Selector
 	(*existing).Template = spec.Template
 	return *existing
+}
+
+// Comparisons
+func areSelectorsEqual(a, b shared.LabelSelector) bool {
+    return areMapsEqual(a.MatchLabels, b.MatchLabels)
+}
+
+func arePodTemplatesEqual(a, b shared.PodTemplate) bool {
+    if !areMapsEqual(a.Metadata.Labels, b.Metadata.Labels) {
+        return false
+    }
+    return arePodSpecsEqual(a.Spec, b.Spec)
+}
+
+func arePodSpecsEqual(a, b shared.PodSpec) bool {
+    if len(a.Containers) != len(b.Containers) {
+        return false
+    }
+    for i := range a.Containers {
+        if !areContainersEqual(a.Containers[i], b.Containers[i]) {
+            return false
+        }
+    }
+    return true
+}
+
+func areContainersEqual(a, b shared.Container) bool {
+    if a.Image != b.Image {
+        return false
+    }
+    if len(a.Ports) != len(b.Ports) {
+        return false
+    }
+    for i := range a.Ports {
+        if a.Ports[i].ContainerPort != b.Ports[i].ContainerPort {
+            return false
+        }
+    }
+    return true
 }
