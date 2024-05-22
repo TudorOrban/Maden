@@ -49,6 +49,7 @@ func createPodFromTemplate(template shared.PodTemplate, podName string, deployme
 		DeploymentID: deploymentID,
 		Status: shared.PodPending,
 		NodeID: "",
+		Containers: template.Spec.Containers,
 		Resources: template.Spec.Resources,
 		Affinity: template.Spec.Affinity,
 		AntiAffinity: template.Spec.AntiAffinity,

@@ -23,6 +23,7 @@ type Pod struct {
 	DeploymentID string `json:"deploymentId"`
 	Status PodStatus `json:"status"`
 	NodeID string `json:"nodeId"`
+	Containers []Container `json:"containers"`
 	Resources Resources `json:"resources"`
 	Affinity map[string]string `json:"affinity"`
 	AntiAffinity map[string]string `json:"antiAffinity"`

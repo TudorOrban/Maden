@@ -2,8 +2,9 @@ package apiserver
 
 import (
 	"maden/pkg/etcd"
-	"maden/pkg/shared"
+	"maden/pkg/madelet"
 	"maden/pkg/scheduler"
+	"maden/pkg/shared"
 
 	"encoding/json"
 	"errors"
@@ -34,6 +35,12 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	dockerRuntime := &madelet.DockerRuntime{}
+	podLifecycleManager := madelet.PodLifecycleManager{
+		Runtime: dockerRuntime,
+	}
+	go podLifecycleManager.RunPod(&pod)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
