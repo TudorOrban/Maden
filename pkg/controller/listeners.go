@@ -29,3 +29,24 @@ func WatchDeployments() {
 		}
 	}
 }
+
+func WatchServices() {
+	ctx := context.Background()
+	rch := etcd.Cli.Watch(ctx, "services/", clientv3.WithPrefix(), clientv3.WithPrevKV())
+	log.Println("Watching services...")
+
+	for wresp := range rch {
+		for _, ev := range wresp.Events {
+			switch ev.Type {
+			case clientv3.EventTypePut:
+				if ev.IsCreate() {
+					handleServiceCreate(ev.Kv)
+				} else {
+					handleServiceUpdate(ev.PrevKv, ev.Kv)
+				}
+			case clientv3.EventTypeDelete:
+				handleServiceDelete(ev.PrevKv)
+			}
+		}
+	}
+}

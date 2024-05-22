@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"encoding/json"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
 	"maden/pkg/scheduler"
 
 	"log"
+	"encoding/json"
 
 	"github.com/google/uuid"
 	"go.etcd.io/etcd/api/v3/mvccpb"
@@ -58,17 +58,17 @@ func createPodFromTemplate(template shared.PodTemplate, podName string, deployme
 }
 
 // Update
-func handleDeploymentUpdate(oldKV *mvccpb.KeyValue, newKV *mvccpb.KeyValue) {
-	log.Printf("Deployment updated: %s, %v", string(oldKV.Value), string(newKV.Value))
+func handleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
+	log.Printf("Deployment updated: %s, %v", string(oldKv.Value), string(newKv.Value))
 	
 	var oldDeployment shared.Deployment
-	if err := json.Unmarshal(oldKV.Value, &oldDeployment); err != nil {
+	if err := json.Unmarshal(oldKv.Value, &oldDeployment); err != nil {
 		log.Printf("Failed to unmarshal old deployment: %v", err)
 		return
 	}
 
 	var newDeployment shared.Deployment
-	if err := json.Unmarshal(newKV.Value, &newDeployment); err != nil {
+	if err := json.Unmarshal(newKv.Value, &newDeployment); err != nil {
 		log.Printf("Failed to unmarshal new deployment: %v", err)
 		return
 	}

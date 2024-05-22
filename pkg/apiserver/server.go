@@ -13,6 +13,7 @@ func InitAPIServer() {
 	registerRoutes()
 
 	go controller.WatchDeployments()
+	go controller.WatchServices()
 
 	fmt.Println("Server is running on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

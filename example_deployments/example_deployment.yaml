@@ -20,7 +20,7 @@ spec:
 apiVersion: v1
 kind: Service
 spec:
-  name: example-service
+  name: example-service3
   selector:
     app: example
   ports:
