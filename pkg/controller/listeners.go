@@ -16,17 +16,14 @@ func WatchDeployments() {
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
-			log.Println("Key:", string(ev.Kv.Key))
-			log.Println("Value:", string(ev.Kv.Value))
 			switch ev.Type {
 			case clientv3.EventTypePut:
 				if ev.IsCreate() {
 					handleDeploymentCreate(ev.Kv)
 				} else {
-					handleDeploymentUpdate(ev.Kv)
+					handleDeploymentUpdate(ev.PrevKv, ev.Kv)
 				}
 			case clientv3.EventTypeDelete:
-				log.Println("Deployment deleted in switch")
 				handleDeploymentDelete(ev.PrevKv)
 			}
 		}
