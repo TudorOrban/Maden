@@ -1,7 +1,7 @@
 version: api/v1
 kind: Deployment
 spec:
-  name: example-deployment-test-pod
+  name: example-deployment-test-pod-2
   replicas: 1
   selector:
     matchLabels:

@@ -12,6 +12,49 @@ import (
 
 var podsKey = "pods/";
 
+
+func ListPods() ([]shared.Pod, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	defer cancel()
+
+	resp, err := Cli.Get(ctx, podsKey, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+
+	pods := make([]shared.Pod, 0)
+	for _, kv := range resp.Kvs {
+		var pod shared.Pod
+		if err := json.Unmarshal(kv.Value, &pod); err != nil {
+			return nil, err
+		}
+		pods = append(pods, pod)
+	}
+	return pods, nil
+}
+
+func GetPodsByDeploymentID(deploymentID string) ([]shared.Pod, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	defer cancel()
+
+	resp, err := Cli.Get(ctx, podsKey, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+
+	pods := make([]shared.Pod, 0)
+	for _, kv := range resp.Kvs {
+		var pod shared.Pod
+		if err := json.Unmarshal(kv.Value, &pod); err != nil {
+			return nil, err
+		}
+		if pod.DeploymentID == deploymentID {
+			pods = append(pods, pod)
+		}
+	}
+	return pods, nil
+}
+
 func CreatePod(pod *shared.Pod) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
@@ -38,26 +81,6 @@ func CreatePod(pod *shared.Pod) error {
 	}
 
 	return nil
-}
-
-func ListPods() ([]shared.Pod, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
-	defer cancel()
-
-	resp, err := Cli.Get(ctx, podsKey, clientv3.WithPrefix())
-	if err != nil {
-		return nil, err
-	}
-
-	pods := make([]shared.Pod, 0)
-	for _, kv := range resp.Kvs {
-		var pod shared.Pod
-		if err := json.Unmarshal(kv.Value, &pod); err != nil {
-			return nil, err
-		}
-		pods = append(pods, pod)
-	}
-	return pods, nil
 }
 
 func DeletePod(podID string) error {

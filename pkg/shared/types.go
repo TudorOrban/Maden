@@ -20,6 +20,7 @@ type NodeCapacity struct {
 type Pod struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
+	DeploymentID string `json:"deploymentId"`
 	Status PodStatus `json:"status"`
 	NodeID string `json:"nodeId"`
 	Resources Resources `json:"resources"`
