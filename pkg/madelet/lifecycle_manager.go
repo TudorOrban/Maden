@@ -20,5 +20,9 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 			log.Printf("Failed to start container: %v", err)
 			return
 		}
+		if err := p.Runtime.GetContainerLogs(containerID, true); err != nil {
+			log.Printf("Failed to get container logs: %v", err)
+			return
+		}
 	}
 }

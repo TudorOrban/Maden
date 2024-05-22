@@ -1,23 +1,97 @@
 package madelet
 
-import "log"
+import (
+	"context"
+	"io"
+	"log"
+	"os"
+
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
+)
 
 type ContainerRuntimeInterface interface {
 	CreateContainer(image string) (string, error)
 	StartContainer(containerID string) error
 	StopContainer(containerID string) error
 	DeleteContainer(containerID string) error
+	GetContainerLogs(containerID string, follow bool) error
 }
 
 type DockerRuntime struct{}
 
 func (d *DockerRuntime) CreateContainer(image string) (string, error) {
 	log.Printf("Creating container with image %s", image)
-	return "docker-container-id", nil
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Printf("Failed to create Docker client: %v", err)
+		return "", err
+	}
+
+	ctx := context.Background()
+	resp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: image,
+	}, nil, nil, nil, "")
+	if err != nil {
+		log.Printf("Failed to create container: %v", err)
+		return "", err
+	}
+
+	return resp.ID, nil
 }
 
 func (d *DockerRuntime) StartContainer(containerID string) error {
 	log.Printf("Starting container %s", containerID)
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Printf("Failed to create Docker client: %v", err)
+		return err
+	}
+
+	ctx := context.Background()
+	if err := cli.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
+		log.Printf("Failed to start container %s: %v", containerID, err)
+		return err
+	}
+
+	return nil
+}
+
+func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) error {
+	log.Printf("Getting logs for container %s", containerID)
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Printf("Failed to create Docker client: %v", err)
+		return err
+	}
+
+	ctx := context.Background()
+	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
+	out, err := cli.ContainerLogs(ctx, containerID, options)
+	if err != nil {
+		log.Printf("Failed to get logs for container %s: %v", containerID, err)
+		return err
+	}
+	defer out.Close()
+
+	if follow {
+		_, err = io.Copy(os.Stdout, out)
+		if err != nil {
+			log.Printf("Failed to stream logs for container %s: %v", containerID, err)
+			return err
+		}
+	} else {
+		logContents, err := io.ReadAll(out)
+		if err != nil {
+			log.Printf("Failed to read logs for container %s: %v", containerID, err)
+			return err
+		}
+
+		log.Printf("Logs for container %s: %s", containerID, logContents)
+	}
 	return nil
 }
 
