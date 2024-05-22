@@ -2,6 +2,7 @@ package madelet
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -18,19 +19,24 @@ type ContainerRuntimeInterface interface {
 	GetContainerLogs(containerID string, follow bool) error
 }
 
-type DockerRuntime struct{}
+type DockerRuntime struct{
+	Client *client.Client
+}
+
+func NewDockerRuntime() (*DockerRuntime, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Docker client: %v", err)
+	}
+	return &DockerRuntime{Client: cli}, nil	
+}
+
 
 func (d *DockerRuntime) CreateContainer(image string) (string, error) {
 	log.Printf("Creating container with image %s", image)
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Printf("Failed to create Docker client: %v", err)
-		return "", err
-	}
-
 	ctx := context.Background()
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
+	resp, err := d.Client.ContainerCreate(ctx, &container.Config{
 		Image: image,
 	}, nil, nil, nil, "")
 	if err != nil {
@@ -44,14 +50,8 @@ func (d *DockerRuntime) CreateContainer(image string) (string, error) {
 func (d *DockerRuntime) StartContainer(containerID string) error {
 	log.Printf("Starting container %s", containerID)
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Printf("Failed to create Docker client: %v", err)
-		return err
-	}
-
 	ctx := context.Background()
-	if err := cli.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
+	if err := d.Client.ContainerStart(ctx, containerID, container.StartOptions{}); err != nil {
 		log.Printf("Failed to start container %s: %v", containerID, err)
 		return err
 	}
@@ -62,15 +62,9 @@ func (d *DockerRuntime) StartContainer(containerID string) error {
 func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) error {
 	log.Printf("Getting logs for container %s", containerID)
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Printf("Failed to create Docker client: %v", err)
-		return err
-	}
-
 	ctx := context.Background()
 	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
-	out, err := cli.ContainerLogs(ctx, containerID, options)
+	out, err := d.Client.ContainerLogs(ctx, containerID, options)
 	if err != nil {
 		log.Printf("Failed to get logs for container %s: %v", containerID, err)
 		return err

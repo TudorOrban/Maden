@@ -2,11 +2,11 @@ package controller
 
 import (
 	"maden/pkg/etcd"
+	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
-	"maden/pkg/scheduler"
 
-	"log"
 	"encoding/json"
+	"log"
 
 	"github.com/google/uuid"
 	"go.etcd.io/etcd/api/v3/mvccpb"
@@ -29,19 +29,15 @@ func createAndSchedulePodsFromDeployment(deployment *shared.Deployment, limit in
 	maxPods := getMaxPods(deployment.Replicas, limit)
 
 	for i := 0; i < maxPods; i++ {
-		pod := createPodFromTemplate(deployment.Template, deployment.Name, deployment.ID)
-		if err := etcd.CreatePod(pod); err != nil {
+		pod := getPodFromTemplate(deployment.Template, deployment.Name, deployment.ID)
+		if err := orchestrator.OrchestratePodCreation(pod); err != nil {
 			log.Printf("Failed to create pod: %v", err)
-			return
-		}
-		if err := scheduler.SchedulePod(pod); err != nil {
-			log.Printf("Failed to schedule pod: %v", err)
 			return
 		}
 	}
 }
 
-func createPodFromTemplate(template shared.PodTemplate, podName string, deploymentID string) *shared.Pod {
+func getPodFromTemplate(template shared.PodTemplate, podName string, deploymentID string) *shared.Pod {
 	podID := podName + "-" + uuid.New().String()
 	pod := &shared.Pod{
 		ID: podID,

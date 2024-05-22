@@ -2,13 +2,11 @@ package apiserver
 
 import (
 	"maden/pkg/etcd"
-	"maden/pkg/madelet"
-	"maden/pkg/scheduler"
+	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
 
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -20,27 +18,17 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	err := scheduler.SchedulePod(&pod)
+	
+	err := orchestrator.OrchestratePodCreation(&pod)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Error scheduling pod: %v", err), http.StatusInternalServerError)
-	}
-
-	if err := etcd.CreatePod(&pod); err != nil {
 		var dupErr *shared.ErrDuplicateResource
 		if errors.As(err, &dupErr) {
 			http.Error(w, dupErr.Error(), http.StatusConflict)
 		} else {
-			http.Error(w, fmt.Sprintf("Error storing pod data in etcd: %v", err), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
-
-	dockerRuntime := &madelet.DockerRuntime{}
-	podLifecycleManager := madelet.PodLifecycleManager{
-		Runtime: dockerRuntime,
-	}
-	go podLifecycleManager.RunPod(&pod)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
