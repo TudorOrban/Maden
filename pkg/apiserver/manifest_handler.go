@@ -13,6 +13,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// type ManifestHandler struct {
+// 	Controller controller.DeploymentController
+// }
+
+// func NewManifestHandler(controller controller.DeploymentController) *ManifestHandler {
+// 	return &ManifestHandler{Controller: controller}
+// }
+
+
 func handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

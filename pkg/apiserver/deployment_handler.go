@@ -5,14 +5,22 @@ import (
 	"maden/pkg/shared"
 
 	"encoding/json"
-	"net/http"
 	"errors"
+	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
-	deployments, err := etcd.ListDeployments()
+type DeploymentHandler struct {
+	Repo etcd.DeploymentRepository
+}
+
+func NewDeploymentHandler(repo etcd.DeploymentRepository) *DeploymentHandler {
+	return &DeploymentHandler{Repo: repo}
+}
+
+func (h *DeploymentHandler) listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
+	deployments, err := h.Repo.ListDeployments()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -7,6 +7,15 @@ import (
 	"fmt"
 )
 
+// type DefaultDeploymentController struct {
+// 	Repo etcd.DeploymentRepository
+// }
+
+// func NewDefaultDeploymentController(repo etcd.DeploymentRepository) *DefaultDeploymentController {
+// 	return &DefaultDeploymentController{Repo: repo}
+// }
+
+
 func HandleIncomingDeployment(deploymentSpec shared.DeploymentSpec) error {
 	existingDeployment, err := etcd.GetDeploymentByName(deploymentSpec.Name)
 	if err != nil {

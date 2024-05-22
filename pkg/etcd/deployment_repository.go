@@ -11,12 +11,20 @@ import (
 
 var deploymentsKey = "deployments/"
 
+type EtcdDeploymentRepository struct{
+	client *clientv3.Client
+}
 
-func ListDeployments() ([]shared.Deployment, error) {
+func NewEtcdDeploymentRepository(client *clientv3.Client) DeploymentRepository {
+	return &EtcdDeploymentRepository{client: client}
+}
+
+
+func (repo *EtcdDeploymentRepository) ListDeployments() ([]shared.Deployment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := Cli.Get(ctx, deploymentsKey, clientv3.WithPrefix())
+	resp, err := repo.client.Get(ctx, deploymentsKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
