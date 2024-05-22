@@ -13,16 +13,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// type ManifestHandler struct {
-// 	Controller controller.DeploymentController
-// }
+type ManifestHandler struct {
+	Controller controller.DeploymentController
+}
 
-// func NewManifestHandler(controller controller.DeploymentController) *ManifestHandler {
-// 	return &ManifestHandler{Controller: controller}
-// }
+func NewManifestHandler(controller controller.DeploymentController) *ManifestHandler {
+	return &ManifestHandler{Controller: controller}
+}
 
 
-func handleMadenResources(w http.ResponseWriter, r *http.Request) {
+func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -45,7 +45,7 @@ func handleMadenResources(w http.ResponseWriter, r *http.Request) {
 
 		switch resource.Kind {
 		case "Deployment":
-			err := handleDeployment(resource)
+			err := h.handleDeployment(resource)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
@@ -62,7 +62,7 @@ func handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func handleDeployment(resource shared.MadenResource) error {
+func (h *ManifestHandler) handleDeployment(resource shared.MadenResource) error {
 	var deploymentSpec shared.DeploymentSpec
 	specBytes, err := json.Marshal(resource.Spec)
 	if err != nil {
@@ -78,7 +78,7 @@ func handleDeployment(resource shared.MadenResource) error {
 
 	fmt.Printf("Handling Deployment: %+v\n", deploymentSpec)
 
-	return controller.HandleIncomingDeployment(deploymentSpec)
+	return h.Controller.HandleIncomingDeployment(deploymentSpec)
 }
 
 func handleService(resource shared.MadenResource) error {

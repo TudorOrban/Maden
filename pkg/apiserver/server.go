@@ -12,12 +12,14 @@ import (
 type Server struct {
 	router *mux.Router
 	DeploymentHandler *DeploymentHandler
+	ManifestHandler *ManifestHandler
 }
 
-func NewServer(deploymentHandler *DeploymentHandler) *Server {
+func NewServer(deploymentHandler *DeploymentHandler, manifestHandler *ManifestHandler) *Server {
 	s := &Server{
 		router: mux.NewRouter(),
 		DeploymentHandler: deploymentHandler,
+		ManifestHandler: manifestHandler,
 	}
 	s.routes()
 	return s
@@ -25,6 +27,8 @@ func NewServer(deploymentHandler *DeploymentHandler) *Server {
 
 func (s *Server) routes() {
 	s.router.HandleFunc("/deployments", s.DeploymentHandler.listDeploymentsHandler).Methods("GET")
+	s.router.HandleFunc("/deployments/{name}", s.DeploymentHandler.deleteDeploymentHandler).Methods("DELETE")
+	s.router.HandleFunc("/manifests", s.ManifestHandler.handleMadenResources).Methods("POST")
 }
 
 func (s *Server) Start() {
@@ -58,10 +62,10 @@ func registerRoutes() {
 	r.HandleFunc("/pods", createPodHandler).Methods("POST")
 	r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")
 	// r.HandleFunc("/deployments", listDeploymentsHandler).Methods("GET")
-	r.HandleFunc("/deployments/{name}", deleteDeploymentHandler).Methods("DELETE")
+	// r.HandleFunc("/deployments/{name}", deleteDeploymentHandler).Methods("DELETE")
 	r.HandleFunc("/services", listServicesHandler).Methods("GET")
 	r.HandleFunc("/services/{name}", deleteServiceHandler).Methods("DELETE")
-	r.HandleFunc("/manifests", handleMadenResources).Methods("POST")
+	// r.HandleFunc("/manifests", handleMadenResources).Methods("POST")
 
 	http.Handle("/", r)
 }

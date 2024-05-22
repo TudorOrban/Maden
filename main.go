@@ -1,9 +1,11 @@
 package main
 
 import (
-	"log"
 	"maden/pkg/apiserver"
+	"maden/pkg/controller"
 	"maden/pkg/etcd"
+
+	"log"
 
 	"go.uber.org/dig"
 )
@@ -29,7 +31,9 @@ func buildContainer() *dig.Container {
 
 	container.Provide(etcd.NewEtcdClient)
 	container.Provide(etcd.NewEtcdDeploymentRepository)
+	container.Provide(controller.NewDefaultDeploymentController)
 	container.Provide(apiserver.NewDeploymentHandler)
+	container.Provide(apiserver.NewManifestHandler)
 	container.Provide(apiserver.NewServer)
 
 	return container

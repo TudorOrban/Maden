@@ -40,12 +40,12 @@ func (repo *EtcdDeploymentRepository) ListDeployments() ([]shared.Deployment, er
 	return deployments, nil
 }
 
-func GetDeploymentByName(name string) (*shared.Deployment, error) {
+func (repo *EtcdDeploymentRepository) GetDeploymentByName(name string) (*shared.Deployment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
 
 	key := deploymentsKey + name
-	resp, err := Cli.Get(ctx, key)
+	resp, err := repo.client.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func GetDeploymentByName(name string) (*shared.Deployment, error) {
 	return &deployment, nil
 } 
 
-func CreateDeployment(deployment *shared.Deployment) error {
+func (repo *EtcdDeploymentRepository) CreateDeployment(deployment *shared.Deployment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
 
@@ -71,7 +71,7 @@ func CreateDeployment(deployment *shared.Deployment) error {
 
 	key := deploymentsKey + deployment.Name
 
-	txnResp, err := Cli.Txn(ctx).
+	txnResp, err := repo.client.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(deploymentData))).
 		Else(clientv3.OpGet(key)).
@@ -87,7 +87,7 @@ func CreateDeployment(deployment *shared.Deployment) error {
 	return nil
 }
 
-func UpdateDeployment(deployment *shared.Deployment) error {
+func (repo *EtcdDeploymentRepository) UpdateDeployment(deployment *shared.Deployment) error {
     ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
 
@@ -98,7 +98,7 @@ func UpdateDeployment(deployment *shared.Deployment) error {
 
     key := deploymentsKey + deployment.Name
 
-    _, err = Cli.Put(ctx, key, string(deploymentData))
+    _, err = repo.client.Put(ctx, key, string(deploymentData))
     if err != nil {
         return err
     }
@@ -106,13 +106,13 @@ func UpdateDeployment(deployment *shared.Deployment) error {
     return nil
 }
 
-func DeleteDeployment(deploymentName string) error {
+func (repo *EtcdDeploymentRepository) DeleteDeployment(deploymentName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
 	key := deploymentsKey + deploymentName
 
-	resp, err := Cli.Delete(ctx, key)
+	resp, err := repo.client.Delete(ctx, key)
 	if err != nil {
 		return err
 	}

@@ -7,22 +7,22 @@ import (
 	"fmt"
 )
 
-// type DefaultDeploymentController struct {
-// 	Repo etcd.DeploymentRepository
-// }
+type DefaultDeploymentController struct {
+	Repo etcd.DeploymentRepository
+}
 
-// func NewDefaultDeploymentController(repo etcd.DeploymentRepository) *DefaultDeploymentController {
-// 	return &DefaultDeploymentController{Repo: repo}
-// }
+func NewDefaultDeploymentController(repo etcd.DeploymentRepository) DeploymentController {
+	return &DefaultDeploymentController{Repo: repo}
+}
 
 
-func HandleIncomingDeployment(deploymentSpec shared.DeploymentSpec) error {
-	existingDeployment, err := etcd.GetDeploymentByName(deploymentSpec.Name)
+func (c *DefaultDeploymentController) HandleIncomingDeployment(deploymentSpec shared.DeploymentSpec) error {
+	existingDeployment, err := c.Repo.GetDeploymentByName(deploymentSpec.Name)
 	if err != nil {
 		if _, ok := err.(*shared.ErrNotFound); ok {
 			fmt.Println("Creating deployment")
 			deployment := transformToDeployment(deploymentSpec)
-			return etcd.CreateDeployment(&deployment)
+			return c.Repo.CreateDeployment(&deployment)
 		} else {
 			return err
 		}
@@ -31,7 +31,7 @@ func HandleIncomingDeployment(deploymentSpec shared.DeploymentSpec) error {
 	if needsDeploymentUpdate(deploymentSpec, existingDeployment) {
 		fmt.Println("Updating deployment")
 		existingDeployment := updateExistingDeployment(deploymentSpec, existingDeployment)
-		return etcd.UpdateDeployment(&existingDeployment)
+		return c.Repo.UpdateDeployment(&existingDeployment)
 	}
 
 	fmt.Println("No update required for deployment: ", deploymentSpec.Name)

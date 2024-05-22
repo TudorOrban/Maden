@@ -30,11 +30,11 @@ func (h *DeploymentHandler) listDeploymentsHandler(w http.ResponseWriter, r *htt
 	json.NewEncoder(w).Encode(deployments)
 }
 
-func deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+func (h *DeploymentHandler) deleteDeploymentHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	deploymentName := vars["name"]
 
-	if err := etcd.DeleteDeployment(deploymentName); err != nil {
+	if err := h.Repo.DeleteDeployment(deploymentName); err != nil {
 		var errNotFound *shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)
