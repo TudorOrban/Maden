@@ -62,6 +62,7 @@ func getPodFromTemplate(template shared.PodTemplate, podName string, deploymentI
 		Affinity: template.Spec.Affinity,
 		AntiAffinity: template.Spec.AntiAffinity,
 		Tolerations: template.Spec.Tolerations,
+		RestartPolicy: template.Spec.RestartPolicy,
 	}
 	return pod
 }

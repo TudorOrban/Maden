@@ -1,8 +1,8 @@
 version: api/v1
 kind: Deployment
 spec:
-  name: example-dep
-  replicas: 5
+  name: example-dep1
+  replicas: 1
   selector:
     matchLabels:
       app: example
@@ -16,6 +16,7 @@ spec:
         image: my-minimal-image
         ports:
         - containerPort: 800
+      restartPolicy: Always
 ---
 apiVersion: v1
 kind: Service

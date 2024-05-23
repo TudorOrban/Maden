@@ -28,6 +28,7 @@ type Pod struct {
 	Affinity map[string]string `json:"affinity"`
 	AntiAffinity map[string]string `json:"antiAffinity"`
 	Tolerations map[string]string `json:"tolerations"`
+	RestartPolicy RestartPolicy `json:"restartPolicy" yaml:"restartPolicy"`
 }
 
 type Resources struct {
