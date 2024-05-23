@@ -16,15 +16,15 @@ spec:
         image: my-minimal-image
         ports:
         - containerPort: 800
-# ---
-# apiVersion: v1
-# kind: Service
-# spec:
-#   name: example-service3
-#   selector:
-#     app: example
-#   ports:
-#     - protocol: TCP
-#       port: 80
-#       targetPort: 81
-#   type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+spec:
+  name: example-service3
+  selector:
+    app: example
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 82
+  type: LoadBalancer

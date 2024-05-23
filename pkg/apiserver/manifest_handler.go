@@ -14,11 +14,15 @@ import (
 )
 
 type ManifestHandler struct {
-	Controller controller.DeploymentController
+	DController controller.DeploymentController
+	SController controller.ServiceController
 }
 
-func NewManifestHandler(controller controller.DeploymentController) *ManifestHandler {
-	return &ManifestHandler{Controller: controller}
+func NewManifestHandler(
+	dController controller.DeploymentController,
+	sController controller.ServiceController,
+) *ManifestHandler {
+	return &ManifestHandler{DController: dController, SController: sController}
 }
 
 
@@ -50,7 +54,7 @@ func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Re
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		case "Service":
-			err := handleService(resource)
+			err := h.handleService(resource)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
@@ -78,10 +82,10 @@ func (h *ManifestHandler) handleDeployment(resource shared.MadenResource) error 
 
 	fmt.Printf("Handling Deployment: %+v\n", deploymentSpec)
 
-	return h.Controller.HandleIncomingDeployment(deploymentSpec)
+	return h.DController.HandleIncomingDeployment(deploymentSpec)
 }
 
-func handleService(resource shared.MadenResource) error {
+func (h *ManifestHandler) handleService(resource shared.MadenResource) error {
 	var serviceSpec shared.ServiceSpec
 	specBytes, err := json.Marshal(resource.Spec)
 	if err != nil {
@@ -97,5 +101,5 @@ func handleService(resource shared.MadenResource) error {
 
 	fmt.Printf("Handling Service: %+v\n", serviceSpec)
 
-	return controller.HandleIncomingService(serviceSpec)
+	return h.SController.HandleIncomingService(serviceSpec)
 }

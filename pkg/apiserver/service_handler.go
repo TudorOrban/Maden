@@ -11,8 +11,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func listServicesHandler(w http.ResponseWriter, r *http.Request) {
-	services, err := etcd.ListServices()
+type ServiceHandler struct {
+	Repo etcd.ServiceRepository
+}
+
+func NewServiceHandler(repo etcd.ServiceRepository) *ServiceHandler {
+	return &ServiceHandler{Repo: repo}
+}
+
+func (h *ServiceHandler) listServicesHandler(w http.ResponseWriter, r *http.Request) {
+	services, err := h.Repo.ListServices()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -22,11 +30,11 @@ func listServicesHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(services)
 }
 
-func deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
+func (h *ServiceHandler) deleteServiceHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	serviceName := vars["name"]
 
-	if err := etcd.DeleteService(serviceName); err != nil {
+	if err := h.Repo.DeleteService(serviceName); err != nil {
 		var errNotFound *shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)

@@ -11,12 +11,20 @@ import (
 
 var servicesKey = "services/"
 
+type EtcdServiceRepository struct {
+	client *clientv3.Client
+}
 
-func ListServices() ([]shared.Service, error) {
+func NewEtcdServiceRepository(client *clientv3.Client) ServiceRepository {
+	return &EtcdServiceRepository{client: client}
+}
+
+
+func (repo *EtcdServiceRepository) ListServices() ([]shared.Service, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := Cli.Get(ctx, servicesKey, clientv3.WithPrefix())
+	resp, err := repo.client.Get(ctx, servicesKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -32,12 +40,12 @@ func ListServices() ([]shared.Service, error) {
 	return services, nil
 }
 
-func GetServiceByName(name string) (*shared.Service, error) {
+func (repo *EtcdServiceRepository) GetServiceByName(name string) (*shared.Service, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
 
 	key := servicesKey + name
-	resp, err := Cli.Get(ctx, key)
+	resp, err := repo.client.Get(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +60,7 @@ func GetServiceByName(name string) (*shared.Service, error) {
 	return &service, nil
 } 
 
-func CreateService(service *shared.Service) error {
+func (repo *EtcdServiceRepository) CreateService(service *shared.Service) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
 
@@ -63,7 +71,7 @@ func CreateService(service *shared.Service) error {
 
 	key := servicesKey + service.Name
 
-	txnResp, err := Cli.Txn(ctx).
+	txnResp, err := repo.client.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(serviceData))).
 		Else(clientv3.OpGet(key)).
@@ -79,7 +87,7 @@ func CreateService(service *shared.Service) error {
 	return nil
 }
 
-func UpdateService(service *shared.Service) error {
+func (repo *EtcdServiceRepository) UpdateService(service *shared.Service) error {
     ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
     defer cancel()
 
@@ -90,7 +98,7 @@ func UpdateService(service *shared.Service) error {
 
     key := servicesKey + service.Name
 
-    _, err = Cli.Put(ctx, key, string(serviceData))
+    _, err = repo.client.Put(ctx, key, string(serviceData))
     if err != nil {
         return err
     }
@@ -98,13 +106,13 @@ func UpdateService(service *shared.Service) error {
     return nil
 }
 
-func DeleteService(serviceName string) error {
+func (repo *EtcdServiceRepository) DeleteService(serviceName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
 	key := servicesKey + serviceName
 
-	resp, err := Cli.Delete(ctx, key)
+	resp, err := repo.client.Delete(ctx, key)
 	if err != nil {
 		return err
 	}

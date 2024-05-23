@@ -7,13 +7,21 @@ import (
 	"fmt"
 )
 
-func HandleIncomingService(serviceSpec shared.ServiceSpec) error {
-	existingService, err := etcd.GetServiceByName(serviceSpec.Name)
+type DefaultServiceController struct {
+	Repo etcd.ServiceRepository
+}
+
+func NewDefaultServiceController(repo etcd.ServiceRepository) ServiceController {
+	return &DefaultServiceController{Repo: repo}
+}
+
+func (c *DefaultServiceController) HandleIncomingService(serviceSpec shared.ServiceSpec) error {
+	existingService, err := c.Repo.GetServiceByName(serviceSpec.Name)
 	if err != nil {
 		if _, ok := err.(*shared.ErrNotFound); ok {
 			fmt.Println("Creating service")
 			service := transformToService(serviceSpec)
-			return etcd.CreateService(&service)
+			return c.Repo.CreateService(&service)
 		} else {
 			return err
 		}
@@ -22,7 +30,7 @@ func HandleIncomingService(serviceSpec shared.ServiceSpec) error {
 	if needsServiceUpdate(serviceSpec, existingService) {
 		fmt.Println("Updating service")
 		existingService := updateExistingService(serviceSpec, existingService)
-		return etcd.UpdateService(&existingService)
+		return c.Repo.UpdateService(&existingService)
 	}
 
 	fmt.Println("No update required for service: ", serviceSpec.Name)

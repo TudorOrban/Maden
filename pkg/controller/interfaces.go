@@ -15,3 +15,13 @@ type DeploymentUpdaterController interface {
 	HandleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue)
 	HandleDeploymentDelete(kv *mvccpb.KeyValue)
 }
+
+type ServiceController interface {
+	HandleIncomingService(serviceSpec shared.ServiceSpec) error
+}
+
+type ServiceUpdaterController interface {
+	HandleServiceCreate(kv *mvccpb.KeyValue)
+	HandleServiceUpdate(prevKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue)
+	HandleServiceDelete(prevKv *mvccpb.KeyValue)
+}

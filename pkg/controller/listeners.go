@@ -2,7 +2,6 @@ package controller
 
 import (
 	"log"
-	"maden/pkg/etcd"
 
 	"context"
 
@@ -12,13 +11,15 @@ import (
 type EtcdChangeListener struct {
 	client *clientv3.Client
 	DeploymentController DeploymentUpdaterController
+	ServiceController ServiceUpdaterController
 }
 
 func NewEtcdChangeListener(
 	client *clientv3.Client,
 	deploymentController DeploymentUpdaterController,
+	serviceController ServiceUpdaterController,
 ) *EtcdChangeListener {
-	return &EtcdChangeListener{client: client, DeploymentController: deploymentController}
+	return &EtcdChangeListener{client: client, DeploymentController: deploymentController, ServiceController: serviceController}
 }
 
 func (l *EtcdChangeListener) WatchDeployments() {	
@@ -42,9 +43,9 @@ func (l *EtcdChangeListener) WatchDeployments() {
 	}
 }
 
-func WatchServices() {
+func (l *EtcdChangeListener) WatchServices() {
 	ctx := context.Background()
-	rch := etcd.Cli.Watch(ctx, "services/", clientv3.WithPrefix(), clientv3.WithPrevKV())
+	rch := l.client.Watch(ctx, "services/", clientv3.WithPrefix(), clientv3.WithPrevKV())
 	log.Println("Watching services...")
 
 	for wresp := range rch {
@@ -52,12 +53,12 @@ func WatchServices() {
 			switch ev.Type {
 			case clientv3.EventTypePut:
 				if ev.IsCreate() {
-					handleServiceCreate(ev.Kv)
+					l.ServiceController.HandleServiceCreate(ev.Kv)
 				} else {
-					handleServiceUpdate(ev.PrevKv, ev.Kv)
+					l.ServiceController.HandleServiceUpdate(ev.PrevKv, ev.Kv)
 				}
 			case clientv3.EventTypeDelete:
-				handleServiceDelete(ev.PrevKv)
+				l.ServiceController.HandleServiceDelete(ev.PrevKv)
 			}
 		}
 	}
