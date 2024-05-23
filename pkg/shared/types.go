@@ -73,6 +73,7 @@ type PodSpec struct {
 	Affinity map[string]string `json:"affinity" yaml:"affinity"`
 	AntiAffinity map[string]string `json:"antiAffinity" yaml:"antiAffinity"`
 	Tolerations map[string]string `json:"tolerations" yaml:"tolerations"`
+	RestartPolicy RestartPolicy `json:"restartPolicy" yaml:"restartPolicy"`
 }
 
 type Metadata struct {

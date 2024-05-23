@@ -25,3 +25,7 @@ type ServiceUpdaterController interface {
 	HandleServiceUpdate(prevKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue)
 	HandleServiceDelete(prevKv *mvccpb.KeyValue)
 }
+
+type PodUpdaterController interface {
+	HandlePodUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue)
+}

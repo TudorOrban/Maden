@@ -92,3 +92,37 @@ const (
 func (r ResourceType) String() string {
 	return [...]string{"Pod", "Node", "Deployment", "Service"}[r]
 }
+
+type RestartPolicy int
+
+const (
+	RestartAlways RestartPolicy = iota
+	RestartOnFailure
+	RestartNever
+)
+
+func (r *RestartPolicy) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	switch s {
+	case "Always":
+		*r = RestartAlways
+	case "OnFailure":
+		*r = RestartOnFailure
+	case "Never":
+		*r = RestartNever
+	default:
+		return fmt.Errorf("unknown restart policy: %s", s)
+	}
+	return nil
+}
+
+func (r RestartPolicy) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.String())
+}
+
+func (r RestartPolicy) String() string {
+	return [...]string{"Always", "OnFailure", "Never"}[r]
+}

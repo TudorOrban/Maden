@@ -59,6 +59,7 @@ func (s *Server) routes() {
 func (s *Server) Start() {
 	go s.ChangeListener.WatchDeployments()
 	go s.ChangeListener.WatchServices()
+	go s.ChangeListener.WatchPodStatusChanges()
 
 	fmt.Println("Server is running on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", s.router); err != nil {

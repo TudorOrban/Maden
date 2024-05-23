@@ -28,6 +28,7 @@ func buildContainer() *dig.Container {
 	container.Provide(controller.NewDefaultDeploymentUpdaterController)
 	container.Provide(controller.NewDefaultServiceController)
 	container.Provide(controller.NewDefaultServiceUpdaterController)
+	container.Provide(controller.NewDefaultPodUpdaterController)
 	container.Provide(controller.NewEtcdChangeListener)
 	container.Provide(madelet.NewPodLifecycleManager)
 	container.Provide(orchestrator.NewDefaultPodOrchestrator)

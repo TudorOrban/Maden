@@ -2,7 +2,6 @@ package controller
 
 import (
 	"log"
-
 	"context"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -12,14 +11,16 @@ type EtcdChangeListener struct {
 	client *clientv3.Client
 	DeploymentController DeploymentUpdaterController
 	ServiceController ServiceUpdaterController
+	PodController PodUpdaterController
 }
 
 func NewEtcdChangeListener(
 	client *clientv3.Client,
 	deploymentController DeploymentUpdaterController,
 	serviceController ServiceUpdaterController,
+	podController PodUpdaterController,
 ) *EtcdChangeListener {
-	return &EtcdChangeListener{client: client, DeploymentController: deploymentController, ServiceController: serviceController}
+	return &EtcdChangeListener{client: client, DeploymentController: deploymentController, ServiceController: serviceController, PodController: podController}
 }
 
 func (l *EtcdChangeListener) WatchDeployments() {	
@@ -59,6 +60,23 @@ func (l *EtcdChangeListener) WatchServices() {
 				}
 			case clientv3.EventTypeDelete:
 				l.ServiceController.HandleServiceDelete(ev.PrevKv)
+			}
+		}
+	}
+}
+
+func (l *EtcdChangeListener) WatchPodStatusChanges() {
+	ctx := context.Background()
+	rch := l.client.Watch(ctx, "pods/", clientv3.WithPrefix(), clientv3.WithPrevKV())
+	log.Println("Watching pods...")
+
+	for wresp := range rch {
+		for _, ev := range wresp.Events {
+			if ev.Type != clientv3.EventTypePut {
+				continue
+			}
+			if !ev.IsCreate() {
+				l.PodController.HandlePodUpdate(ev.PrevKv, ev.Kv)
 			}
 		}
 	}
