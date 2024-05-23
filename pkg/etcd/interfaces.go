@@ -8,6 +8,7 @@ import (
 type PodRepository interface {
 	ListPods() ([]shared.Pod, error)
 	GetPodsByDeploymentID(deploymentID string) ([]shared.Pod, error)
+	GetPodByID(podID string) (*shared.Pod, error)
 	CreatePod(pod *shared.Pod) error
 	UpdatePod(pod *shared.Pod) error
 	DeletePod(podID string) error

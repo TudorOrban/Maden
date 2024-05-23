@@ -2,7 +2,7 @@ version: api/v1
 kind: Deployment
 spec:
   name: example-dep1
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: example

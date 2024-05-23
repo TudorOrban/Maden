@@ -14,14 +14,14 @@ import (
 
 type PodHandler struct {
 	Repo etcd.PodRepository
-	orchestrator orchestrator.PodOrchestrator
+	Orchestrator orchestrator.PodOrchestrator
 }
 
 func NewPodHandler(
 	repo etcd.PodRepository,
 	orchestrator orchestrator.PodOrchestrator,
 ) *PodHandler {
-	return &PodHandler{Repo: repo, orchestrator: orchestrator}
+	return &PodHandler{Repo: repo, Orchestrator: orchestrator}
 }
 
 
@@ -43,7 +43,7 @@ func (h *PodHandler) createPodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	err := h.orchestrator.OrchestratePodCreation(&pod)
+	err := h.Orchestrator.OrchestratePodCreation(&pod)
 	if err != nil {
 		var dupErr *shared.ErrDuplicateResource
 		if errors.As(err, &dupErr) {
@@ -63,13 +63,13 @@ func (h *PodHandler) deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	podID := vars["id"]
 
-	if err := h.Repo.DeletePod(podID); err != nil {
-		var notFoundErr *shared.ErrNotFound
-		if errors.As(err, &notFoundErr) {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+	pod, err := h.Repo.GetPodByID(podID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	if err := h.Orchestrator.OrchestratePodDeletion(pod); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

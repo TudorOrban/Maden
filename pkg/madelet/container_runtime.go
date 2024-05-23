@@ -1,10 +1,13 @@
 package madelet
 
 import (
+	"maden/pkg/shared"
+
 	"context"
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -54,6 +57,37 @@ func (d *DockerRuntime) StartContainer(containerID string) error {
 	return nil
 }
 
+func (d *DockerRuntime) StopContainer(containerID string) error {
+	log.Printf("Stopping container %s", containerID)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := d.Client.ContainerStop(ctx, containerID, container.StopOptions{}); err != nil {
+		log.Printf("Failed to stop container %s: %v", containerID, err)
+		return err
+	}
+
+	log.Printf("Container %s stopped", containerID)
+	return nil
+}
+
+func (d *DockerRuntime) DeleteContainer(containerID string) error {
+	log.Printf("Deleting container %s", containerID)
+
+	ctx := context.Background()
+
+	options := container.RemoveOptions{Force: true}
+
+	if err := d.Client.ContainerRemove(ctx, containerID, options); err != nil {
+		log.Printf("Failed to delete container %s: %v", containerID, err)
+		return err
+	}
+
+	log.Printf("Container %s deleted", containerID)
+	return nil
+}
+
 func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) error {
 	log.Printf("Getting logs for container %s", containerID)
 
@@ -84,12 +118,20 @@ func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) error 
 	return nil
 }
 
-func (d *DockerRuntime) StopContainer(containerID string) error {
-	log.Printf("Stopping container %s", containerID)
-	return nil
-}
+func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.ContainerStatus, error) {
+	log.Printf("Getting status for container %s", containerID)
 
-func (d *DockerRuntime) DeleteContainer(containerID string) error {
-	log.Printf("Deleting container %s", containerID)
-	return nil
+	ctx := context.Background()
+	resp, err := d.Client.ContainerInspect(ctx, containerID)
+	if err != nil {
+		log.Printf("Failed to get status for container %s: %v", containerID, err)
+		return shared.Dead, err
+	}
+
+	containerStatus, err := shared.GetStatusFromString(resp.State.Status)
+	if err != nil {
+		log.Printf("Failed to parse status for container %s: %v", containerID, err)
+		return shared.Dead, err
+	}
+	return *containerStatus, nil
 }

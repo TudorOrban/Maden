@@ -62,6 +62,21 @@ func (mr *MockPodRepositoryMockRecorder) DeletePod(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePod", reflect.TypeOf((*MockPodRepository)(nil).DeletePod), arg0)
 }
 
+// GetPodByID mocks base method.
+func (m *MockPodRepository) GetPodByID(arg0 string) (*shared.Pod, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPodByID", arg0)
+	ret0, _ := ret[0].(*shared.Pod)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPodByID indicates an expected call of GetPodByID.
+func (mr *MockPodRepositoryMockRecorder) GetPodByID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPodByID", reflect.TypeOf((*MockPodRepository)(nil).GetPodByID), arg0)
+}
+
 // GetPodsByDeploymentID mocks base method.
 func (m *MockPodRepository) GetPodsByDeploymentID(arg0 string) ([]shared.Pod, error) {
 	m.ctrl.T.Helper()

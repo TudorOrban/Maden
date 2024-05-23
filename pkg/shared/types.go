@@ -82,6 +82,7 @@ type Metadata struct {
 }
 
 type Container struct {
+	ContainerID string `json:"containerId"`
 	Image string `json:"image" yaml:"image"`
 	Ports []Port `json:"ports" yaml:"ports"`
 }

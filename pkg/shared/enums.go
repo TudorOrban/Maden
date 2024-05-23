@@ -126,3 +126,59 @@ func (r RestartPolicy) MarshalJSON() ([]byte, error) {
 func (r RestartPolicy) String() string {
 	return [...]string{"Always", "OnFailure", "Never"}[r]
 }
+
+type ContainerStatus int
+
+const (
+	Created ContainerStatus = iota
+	Running
+	Paused
+	Restarting
+	Removing
+	Exited
+	Dead
+)
+
+func (c *ContainerStatus) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	containerStatus, err := GetStatusFromString(s)
+	if err != nil {
+		return err
+	}
+	c = containerStatus
+	return nil
+}
+
+func GetStatusFromString(s string) (*ContainerStatus, error) {
+	var c ContainerStatus
+	switch s {
+	case "created":
+		c = Created
+	case "running":
+		c = Running
+	case "paused":
+		c = Paused
+	case "restarting":
+		c = Restarting
+	case "removing":
+		c = Removing
+	case "exited":
+		c = Exited
+	case "dead":
+		c = Dead
+	default:
+		return nil, fmt.Errorf("unknown container state: %s", s)
+	}
+	return &c, nil
+}
+
+func (c ContainerStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(c.String())
+}
+
+func (c ContainerStatus) String() string {
+	return [...]string{"created", "running", "paused", "restarting", "removing", "exited", "dead"}[c]
+}

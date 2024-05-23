@@ -47,3 +47,17 @@ func (mr *MockPodOrchestratorMockRecorder) OrchestratePodCreation(arg0 interface
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrchestratePodCreation", reflect.TypeOf((*MockPodOrchestrator)(nil).OrchestratePodCreation), arg0)
 }
+
+// OrchestratePodDeletion mocks base method.
+func (m *MockPodOrchestrator) OrchestratePodDeletion(arg0 *shared.Pod) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrchestratePodDeletion", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OrchestratePodDeletion indicates an expected call of OrchestratePodDeletion.
+func (mr *MockPodOrchestratorMockRecorder) OrchestratePodDeletion(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrchestratePodDeletion", reflect.TypeOf((*MockPodOrchestrator)(nil).OrchestratePodDeletion), arg0)
+}

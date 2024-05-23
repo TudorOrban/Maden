@@ -67,6 +67,28 @@ func (repo *EtcdPodRepository) GetPodsByDeploymentID(deploymentID string) ([]sha
 	return pods, nil
 }
 
+func (repo *EtcdPodRepository) GetPodByID(podID string) (*shared.Pod, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	defer cancel()
+
+	key := podsKey + podID
+
+	resp, err := repo.client.Get(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.Kvs) == 0 {
+		return nil, &shared.ErrNotFound{ID: podID, ResourceType: shared.PodResource}
+	}
+
+	var pod shared.Pod
+	if err := json.Unmarshal(resp.Kvs[0].Value, &pod); err != nil {
+		return nil, err
+	}
+	return &pod, nil
+}
+
 func (repo *EtcdPodRepository) CreatePod(pod *shared.Pod) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()

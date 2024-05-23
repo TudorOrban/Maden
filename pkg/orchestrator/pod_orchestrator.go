@@ -36,3 +36,15 @@ func (po *DefaultPodOrchestrator) OrchestratePodCreation(pod *shared.Pod) error 
 
 	return nil
 }
+
+func (po *DefaultPodOrchestrator) OrchestratePodDeletion(pod *shared.Pod) error {
+	if err := po.PodManager.StopPod(pod); err != nil {
+		return err
+	}
+
+	if err := po.Repo.DeletePod(pod.ID); err != nil {
+		return err
+	}
+
+	return nil
+}

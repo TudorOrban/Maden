@@ -47,15 +47,15 @@ func (c *DefaultPodUpdaterController) HandlePodUpdate(oldKv *mvccpb.KeyValue, ne
 
 func shouldRestart(oldPod shared.Pod, newPod shared.Pod) bool {
 	if oldPod.Status == newPod.Status {
-		return false// Only care about status changes for now
+		return false // Only care about status changes for now
 	}
 
 	if newPod.RestartPolicy == shared.RestartNever {
-		return false// No need to restart
+		return false // No need to restart
 	}
 
 	if newPod.Status != shared.PodFailed {
-		return false// Only restart failed pods
+		return false // Only restart failed pods
 	}
 
 	return true

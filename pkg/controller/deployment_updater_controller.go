@@ -13,15 +13,15 @@ import (
 )
 
 type DefaultDeploymentUpdaterController struct {
-	repo etcd.PodRepository
-	orchestrator orchestrator.PodOrchestrator
+	Repo etcd.PodRepository
+	Orchestrator orchestrator.PodOrchestrator
 }
 
 func NewDefaultDeploymentUpdaterController(
 	repo etcd.PodRepository,
 	orchestrator orchestrator.PodOrchestrator,
 ) DeploymentUpdaterController {
-	return &DefaultDeploymentUpdaterController{repo: repo, orchestrator: orchestrator}
+	return &DefaultDeploymentUpdaterController{Repo: repo, Orchestrator: orchestrator}
 }
 
 // Create
@@ -42,7 +42,7 @@ func (c *DefaultDeploymentUpdaterController) createAndSchedulePodsFromDeployment
 
 	for i := 0; i < maxPods; i++ {
 		pod := getPodFromTemplate(deployment.Template, deployment.Name, deployment.ID)
-		if err := c.orchestrator.OrchestratePodCreation(pod); err != nil {
+		if err := c.Orchestrator.OrchestratePodCreation(pod); err != nil {
 			log.Printf("Failed to create pod: %v", err)
 			return
 		}
@@ -119,7 +119,7 @@ func (c *DefaultDeploymentUpdaterController) HandleDeploymentDelete(kv *mvccpb.K
 }
 
 func (c *DefaultDeploymentUpdaterController) deletePodsByDeploymentID(deploymentID string, limit int) {
-	pods, err := c.repo.GetPodsByDeploymentID(deploymentID)
+	pods, err := c.Repo.GetPodsByDeploymentID(deploymentID)
 	if err != nil {
 		log.Printf("Failed to get pods by deployment ID: %v", err)
 		return
@@ -127,7 +127,7 @@ func (c *DefaultDeploymentUpdaterController) deletePodsByDeploymentID(deployment
 
 	maxPods := getMaxPods(len(pods), limit)
 	for _, pod := range pods[:maxPods] {
-		err := c.repo.DeletePod(pod.ID)
+		err := c.Orchestrator.OrchestratePodDeletion(&pod)
 		if err != nil {
 			log.Printf("Failed to delete pod %s: %v", pod.ID, err)
 			return

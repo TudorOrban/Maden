@@ -75,16 +75,18 @@ func TestPodHandlerDeletePodHandler(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRepo := mocks.NewMockPodRepository(ctrl)
-	handler := NewPodHandler(mockRepo, nil)
+	mockOrchestrator := mocks.NewMockPodOrchestrator(ctrl)
+	handler := NewPodHandler(mockRepo, mockOrchestrator)
 
-	podID := "1"
-	mockRepo.EXPECT().DeletePod(podID).Return(nil)
+	pod := shared.Pod{ID: "1", Name: "test-pod"}
+	mockRepo.EXPECT().GetPodByID(pod.ID).Return(&pod, nil)
+	mockOrchestrator.EXPECT().OrchestratePodDeletion(&pod).Return(nil)
 
-	req, err := http.NewRequest("DELETE", "/pods/"+podID, nil)
+	req, err := http.NewRequest("DELETE", "/pods/"+pod.ID, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	req = mux.SetURLVars(req, map[string]string{"id": podID})
+	req = mux.SetURLVars(req, map[string]string{"id": pod.ID})
 
 	rr := httptest.NewRecorder()
 

@@ -21,8 +21,8 @@ func NewPodLifecycleManager(
 
 
 func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
-	for _, container := range pod.Containers {
-		containerID := p.attemptContainerCreation(pod, container)
+	for containerIndex := range pod.Containers {
+		containerID := p.attemptContainerCreation(pod, containerIndex)
 		if containerID == nil {
 			return
 		}
@@ -36,18 +36,24 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 	}
 }
 
-func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, container shared.Container) *string {
+func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, containerIndex int) *string {
 	pod.Status = shared.PodContainerCreating
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
 		log.Printf("Failed to update pod status: %v", err)
 		return nil
 	}
 	
-	containerID, err := p.Runtime.CreateContainer(container.Image)
+	containerID, err := p.Runtime.CreateContainer(pod.Containers[containerIndex].Image)
 	if err != nil {
 		log.Printf("Failed to create container: %v", err)
 		pod.Status = shared.PodFailed
 		_ = p.PodRepo.UpdatePod(pod)	
+		return nil
+	}
+
+	pod.Containers[containerIndex].ContainerID = containerID
+	if err := p.PodRepo.UpdatePod(pod); err != nil {
+		log.Printf("Failed to update pod with ContainerID: %v", err)
 		return nil
 	}
 
@@ -66,4 +72,28 @@ func (p *PodLifecycleManager) attemptContainerStart(containerID string, pod *sha
 		log.Printf("Failed to update pod status: %v", err)
 		return
 	}
+}
+
+func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
+	for _, container := range pod.Containers {
+		containerStatus, err := p.Runtime.GetContainerStatus(container.ContainerID)
+		if err != nil {
+			log.Printf("Failed to get container status: %v", err)
+			return err
+		}
+		log.Printf("Container status result %s", containerStatus)
+		if containerStatus != shared.Running {
+			log.Printf("Container %s not running, status: %s", container.ContainerID, containerStatus)
+			continue
+		}
+
+		if err := p.Runtime.StopContainer(container.ContainerID); err != nil {
+			log.Printf("Failed to stop container: %v", err)
+		}
+
+		if err := p.Runtime.DeleteContainer(container.ContainerID); err != nil {
+			log.Printf("Failed to remove container: %v", err)
+		}
+	}
+	return nil
 }
