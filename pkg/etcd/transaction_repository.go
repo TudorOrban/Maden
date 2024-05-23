@@ -8,10 +8,10 @@ import (
 )
 
 type EtcdTransactionRepository struct {
-	client clientv3.Client
+	client EtcdClient
 }
 
-func NewEtcdTransactionRepository(client clientv3.Client) Transactioner {
+func NewEtcdTransactionRepository(client EtcdClient) Transactioner {
 	return &EtcdTransactionRepository{client: client}
 }
 

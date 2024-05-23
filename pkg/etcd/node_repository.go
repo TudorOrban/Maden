@@ -12,11 +12,15 @@ import (
 var nodesKey = "nodes/"
 
 type EtcdNodeRepository struct {
-	client *clientv3.Client
+	client EtcdClient
+	transactioner Transactioner
 }
 
-func NewEtcdNodeRepository(client *clientv3.Client) NodeRepository {
-	return &EtcdNodeRepository{client: client}
+func NewEtcdNodeRepository(
+	client EtcdClient,
+	transactioner Transactioner,
+) NodeRepository {
+	return &EtcdNodeRepository{client: client, transactioner: transactioner}
 }
 
 
@@ -51,21 +55,7 @@ func (repo *EtcdNodeRepository) CreateNode(node *shared.Node) error {
 
 	key := nodesKey + node.ID
 
-	// Start transaction to prevent duplicates
-	txnResp, err := repo.client.Txn(ctx).
-		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
-		Then(clientv3.OpPut(key, string(nodeData))).
-		Else(clientv3.OpGet(key)).
-		Commit()
-
-	if err != nil {
-		return err
-	}
-	if !txnResp.Succeeded {
-		return &shared.ErrDuplicateResource{ID: node.ID, ResourceType: shared.NodeResource}
-	}
-
-	return nil
+	return repo.transactioner.PerformTransaction(ctx, key, string(nodeData), shared.NodeResource)
 }
 
 func (repo *EtcdNodeRepository) UpdateNode(node *shared.Node) error {
@@ -78,7 +68,15 @@ func (repo *EtcdNodeRepository) UpdateNode(node *shared.Node) error {
     }
 
     key := nodesKey + node.ID
-    _, err = repo.client.Put(ctx, key, string(nodeData))
+
+    resp, err := repo.client.Put(ctx, key, string(nodeData))
+	if err != nil {
+		return err
+	}
+
+	if resp.PrevKv == nil {
+		return &shared.ErrNotFound{ID: node.ID, ResourceType: shared.NodeResource}
+	}
     return err
 }
 

@@ -12,11 +12,15 @@ import (
 var servicesKey = "services/"
 
 type EtcdServiceRepository struct {
-	client *clientv3.Client
+	client EtcdClient
+	transactioner Transactioner
 }
 
-func NewEtcdServiceRepository(client *clientv3.Client) ServiceRepository {
-	return &EtcdServiceRepository{client: client}
+func NewEtcdServiceRepository(
+	client EtcdClient,
+	transactioner Transactioner,
+) ServiceRepository {
+	return &EtcdServiceRepository{client: client, transactioner: transactioner}
 }
 
 
@@ -71,20 +75,7 @@ func (repo *EtcdServiceRepository) CreateService(service *shared.Service) error 
 
 	key := servicesKey + service.Name
 
-	txnResp, err := repo.client.Txn(ctx).
-		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
-		Then(clientv3.OpPut(key, string(serviceData))).
-		Else(clientv3.OpGet(key)).
-		Commit()
-
-	if err != nil {
-		return err
-	}
-	if !txnResp.Succeeded {
-		return &shared.ErrDuplicateResource{ID: service.ID, ResourceType: shared.ServiceResource}
-	}
-
-	return nil
+	return repo.transactioner.PerformTransaction(ctx, key, string(serviceData), shared.ServiceResource)
 }
 
 func (repo *EtcdServiceRepository) UpdateService(service *shared.Service) error {
@@ -98,12 +89,15 @@ func (repo *EtcdServiceRepository) UpdateService(service *shared.Service) error 
 
     key := servicesKey + service.Name
 
-    _, err = repo.client.Put(ctx, key, string(serviceData))
+    resp, err := repo.client.Put(ctx, key, string(serviceData))
     if err != nil {
         return err
     }
 
-    return nil
+	if resp.PrevKv == nil {
+		return &shared.ErrNotFound{ID: service.ID, ResourceType: shared.ServiceResource}
+	}
+	return nil
 }
 
 func (repo *EtcdServiceRepository) DeleteService(serviceName string) error {

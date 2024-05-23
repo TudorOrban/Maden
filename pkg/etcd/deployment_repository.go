@@ -12,11 +12,15 @@ import (
 var deploymentsKey = "deployments/"
 
 type EtcdDeploymentRepository struct {
-	client *clientv3.Client
+	client EtcdClient
+	transactioner Transactioner
 }
 
-func NewEtcdDeploymentRepository(client *clientv3.Client) DeploymentRepository {
-	return &EtcdDeploymentRepository{client: client}
+func NewEtcdDeploymentRepository(
+	client EtcdClient,
+	transactioner Transactioner,	
+) DeploymentRepository {
+	return &EtcdDeploymentRepository{client: client, transactioner: transactioner}
 }
 
 
@@ -71,20 +75,7 @@ func (repo *EtcdDeploymentRepository) CreateDeployment(deployment *shared.Deploy
 
 	key := deploymentsKey + deployment.Name
 
-	txnResp, err := repo.client.Txn(ctx).
-		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
-		Then(clientv3.OpPut(key, string(deploymentData))).
-		Else(clientv3.OpGet(key)).
-		Commit()
-
-	if err != nil {
-		return err
-	}
-	if !txnResp.Succeeded {
-		return &shared.ErrDuplicateResource{ID: deployment.ID, ResourceType: shared.DeploymentResource}
-	}
-
-	return nil
+	return repo.transactioner.PerformTransaction(ctx, key, string(deploymentData), shared.DeploymentResource)
 }
 
 func (repo *EtcdDeploymentRepository) UpdateDeployment(deployment *shared.Deployment) error {
@@ -98,11 +89,14 @@ func (repo *EtcdDeploymentRepository) UpdateDeployment(deployment *shared.Deploy
 
     key := deploymentsKey + deployment.Name
 
-    _, err = repo.client.Put(ctx, key, string(deploymentData))
+    resp, err := repo.client.Put(ctx, key, string(deploymentData))
     if err != nil {
         return err
     }
-
+	
+	if resp.PrevKv == nil {
+		return &shared.ErrNotFound{ID: deployment.Name, ResourceType: shared.DeploymentResource}
+	}
     return nil
 }
 
