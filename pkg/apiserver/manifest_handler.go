@@ -52,14 +52,18 @@ func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Re
 			err := h.handleDeployment(resource)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 		case "Service":
 			err := h.handleService(resource)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 		default:
-			fmt.Fprintf(w, "Unsupported kind: %s", resource.Kind)
+			errorMsg := fmt.Sprintf("Unsupported kind: %s", resource.Kind)
+            http.Error(w, errorMsg, http.StatusBadRequest)
+            return
 		}
 	}
 
