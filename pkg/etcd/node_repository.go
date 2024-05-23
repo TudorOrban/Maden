@@ -11,6 +11,14 @@ import (
 
 var nodesKey = "nodes/"
 
+// type EtcdNodeRepository struct {
+// 	client *clientv3.Client
+// }
+
+// func NewEtcdNodeRepository(client *clientv3.Client) NodeRepository {
+// 	return &EtcdNodeRepository{client: client}
+// }
+
 
 func ListNodes() ([]shared.Node, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)

@@ -11,7 +11,7 @@ import (
 
 var deploymentsKey = "deployments/"
 
-type EtcdDeploymentRepository struct{
+type EtcdDeploymentRepository struct {
 	client *clientv3.Client
 }
 

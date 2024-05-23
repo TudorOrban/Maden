@@ -9,9 +9,21 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
-func WatchDeployments() {	
+type EtcdChangeListener struct {
+	client *clientv3.Client
+	DeploymentController DeploymentUpdaterController
+}
+
+func NewEtcdChangeListener(
+	client *clientv3.Client,
+	deploymentController DeploymentUpdaterController,
+) *EtcdChangeListener {
+	return &EtcdChangeListener{client: client, DeploymentController: deploymentController}
+}
+
+func (l *EtcdChangeListener) WatchDeployments() {	
 	ctx := context.Background()
-	rch := etcd.Cli.Watch(ctx, "deployments/", clientv3.WithPrefix(), clientv3.WithPrevKV())
+	rch := l.client.Watch(ctx, "deployments/", clientv3.WithPrefix(), clientv3.WithPrevKV())
 	log.Println("Watching deployments...")
 
 	for wresp := range rch {
@@ -19,12 +31,12 @@ func WatchDeployments() {
 			switch ev.Type {
 			case clientv3.EventTypePut:
 				if ev.IsCreate() {
-					handleDeploymentCreate(ev.Kv)
+					l.DeploymentController.HandleDeploymentCreate(ev.Kv)
 				} else {
-					handleDeploymentUpdate(ev.PrevKv, ev.Kv)
+					l.DeploymentController.HandleDeploymentUpdate(ev.PrevKv, ev.Kv)
 				}
 			case clientv3.EventTypeDelete:
-				handleDeploymentDelete(ev.PrevKv)
+				l.DeploymentController.HandleDeploymentDelete(ev.PrevKv)
 			}
 		}
 	}

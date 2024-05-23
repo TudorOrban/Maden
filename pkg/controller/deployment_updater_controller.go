@@ -12,8 +12,20 @@ import (
 	"go.etcd.io/etcd/api/v3/mvccpb"
 )
 
+type DefaultDeploymentUpdaterController struct {
+	repo etcd.PodRepository
+	orchestrator orchestrator.PodOrchestrator
+}
+
+func NewDefaultDeploymentUpdaterController(
+	repo etcd.PodRepository,
+	orchestrator orchestrator.PodOrchestrator,
+) DeploymentUpdaterController {
+	return &DefaultDeploymentUpdaterController{repo: repo, orchestrator: orchestrator}
+}
+
 // Create
-func handleDeploymentCreate(kv *mvccpb.KeyValue) {
+func (c *DefaultDeploymentUpdaterController) HandleDeploymentCreate(kv *mvccpb.KeyValue) {
 	log.Printf("New deployment created: %s", string(kv.Value))
 
 	var deployment shared.Deployment
@@ -22,15 +34,15 @@ func handleDeploymentCreate(kv *mvccpb.KeyValue) {
 		return
 	}
 
-	createAndSchedulePodsFromDeployment(&deployment, -1)
+	c.createAndSchedulePodsFromDeployment(&deployment, -1)
 }
 
-func createAndSchedulePodsFromDeployment(deployment *shared.Deployment, limit int) {
+func (c *DefaultDeploymentUpdaterController) createAndSchedulePodsFromDeployment(deployment *shared.Deployment, limit int) {
 	maxPods := getMaxPods(deployment.Replicas, limit)
 
 	for i := 0; i < maxPods; i++ {
 		pod := getPodFromTemplate(deployment.Template, deployment.Name, deployment.ID)
-		if err := orchestrator.OrchestratePodCreation(pod); err != nil {
+		if err := c.orchestrator.OrchestratePodCreation(pod); err != nil {
 			log.Printf("Failed to create pod: %v", err)
 			return
 		}
@@ -55,7 +67,7 @@ func getPodFromTemplate(template shared.PodTemplate, podName string, deploymentI
 }
 
 // Update
-func handleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
+func (c *DefaultDeploymentUpdaterController) HandleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
 	log.Printf("Deployment updated: %s, %v", string(oldKv.Value), string(newKv.Value))
 	
 	var oldDeployment shared.Deployment
@@ -71,29 +83,29 @@ func handleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
 	}
 
 	if oldDeployment.Replicas != newDeployment.Replicas {
-		handleDeploymentReplicasUpdate(&oldDeployment, &newDeployment)
+		c.handleDeploymentReplicasUpdate(&oldDeployment, &newDeployment)
 	}
 	if !arePodTemplatesEqual(oldDeployment.Template, newDeployment.Template) {
-		handleDeploymentTemplateUpdate(oldDeployment.ID, &newDeployment)
+		c.handleDeploymentTemplateUpdate(oldDeployment.ID, &newDeployment)
 	}
 }
 
-func handleDeploymentReplicasUpdate(oldDeployment *shared.Deployment, newDeployment *shared.Deployment) {
+func (c *DefaultDeploymentUpdaterController) handleDeploymentReplicasUpdate(oldDeployment *shared.Deployment, newDeployment *shared.Deployment) {
 	difference := newDeployment.Replicas - oldDeployment.Replicas
 	if difference > 0 {
-		createAndSchedulePodsFromDeployment(newDeployment, difference)
+		c.createAndSchedulePodsFromDeployment(newDeployment, difference)
 	} else if difference < 0 {
-		deletePodsByDeploymentID(newDeployment.ID, -difference)
+		c.deletePodsByDeploymentID(newDeployment.ID, -difference)
 	}
 }
 
-func handleDeploymentTemplateUpdate(oldDeploymentID string, newDeployment *shared.Deployment) {
-	deletePodsByDeploymentID(oldDeploymentID, -1)
-	createAndSchedulePodsFromDeployment(newDeployment, -1)
+func (c *DefaultDeploymentUpdaterController) handleDeploymentTemplateUpdate(oldDeploymentID string, newDeployment *shared.Deployment) {
+	c.deletePodsByDeploymentID(oldDeploymentID, -1)
+	c.createAndSchedulePodsFromDeployment(newDeployment, -1)
 }
 
 // Delete
-func handleDeploymentDelete(kv *mvccpb.KeyValue) {
+func (c *DefaultDeploymentUpdaterController) HandleDeploymentDelete(kv *mvccpb.KeyValue) {
 	log.Printf("Deployment deleted: %s", string(kv.Value))
 
 	var deployment shared.Deployment
@@ -102,11 +114,11 @@ func handleDeploymentDelete(kv *mvccpb.KeyValue) {
 		return
 	}
 
-	deletePodsByDeploymentID(deployment.ID, -1)
+	c.deletePodsByDeploymentID(deployment.ID, -1)
 }
 
-func deletePodsByDeploymentID(deploymentID string, limit int) {
-	pods, err := etcd.GetPodsByDeploymentID(deploymentID)
+func (c *DefaultDeploymentUpdaterController) deletePodsByDeploymentID(deploymentID string, limit int) {
+	pods, err := c.repo.GetPodsByDeploymentID(deploymentID)
 	if err != nil {
 		log.Printf("Failed to get pods by deployment ID: %v", err)
 		return
@@ -114,7 +126,7 @@ func deletePodsByDeploymentID(deploymentID string, limit int) {
 
 	maxPods := getMaxPods(len(pods), limit)
 	for _, pod := range pods[:maxPods] {
-		err := etcd.DeletePod(pod.ID)
+		err := c.repo.DeletePod(pod.ID)
 		if err != nil {
 			log.Printf("Failed to delete pod %s: %v", pod.ID, err)
 			return

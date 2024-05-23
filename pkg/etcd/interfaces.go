@@ -9,3 +9,11 @@ type DeploymentRepository interface {
 	UpdateDeployment(deployment *shared.Deployment) error
 	DeleteDeployment(deploymentName string) error
 }
+
+type PodRepository interface {
+	ListPods() ([]shared.Pod, error)
+	GetPodsByDeploymentID(deploymentID string) ([]shared.Pod, error)
+	CreatePod(pod *shared.Pod) error
+	UpdatePod(pod *shared.Pod) error
+	DeletePod(podID string) error
+}

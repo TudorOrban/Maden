@@ -12,14 +12,27 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func createPodHandler(w http.ResponseWriter, r *http.Request) {
+type PodHandler struct {
+	Repo etcd.PodRepository
+	orchestrator orchestrator.PodOrchestrator
+}
+
+func NewPodHandler(
+	repo etcd.PodRepository,
+	orchestrator orchestrator.PodOrchestrator,
+) *PodHandler {
+	return &PodHandler{Repo: repo, orchestrator: orchestrator}
+}
+
+
+func (h *PodHandler) createPodHandler(w http.ResponseWriter, r *http.Request) {
 	var pod shared.Pod
 	if err := json.NewDecoder(r.Body).Decode(&pod); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	
-	err := orchestrator.OrchestratePodCreation(&pod)
+	err := h.orchestrator.OrchestratePodCreation(&pod)
 	if err != nil {
 		var dupErr *shared.ErrDuplicateResource
 		if errors.As(err, &dupErr) {
@@ -36,8 +49,8 @@ func createPodHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func listPodsHandler(w http.ResponseWriter, r *http.Request) {
-	pods, err := etcd.ListPods()
+func (h *PodHandler) listPodsHandler(w http.ResponseWriter, r *http.Request) {
+	pods, err := h.Repo.ListPods()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -48,11 +61,11 @@ func listPodsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func deletePodHandler(w http.ResponseWriter, r *http.Request) {
+func (h *PodHandler) deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	podID := vars["id"]
 
-	if err := etcd.DeletePod(podID); err != nil {
+	if err := h.Repo.DeletePod(podID); err != nil {
 		var notFoundErr *shared.ErrNotFound
 		if errors.As(err, &notFoundErr) {
 			w.WriteHeader(http.StatusNotFound)

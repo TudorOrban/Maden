@@ -8,14 +8,21 @@ import (
 
 )
 
+type DefaultPodOrchestrator struct {
+	Repo etcd.PodRepository
+}
 
-func OrchestratePodCreation(pod *shared.Pod) error {
+func NewDefaultPodOrchestrator(repo etcd.PodRepository) PodOrchestrator {
+	return &DefaultPodOrchestrator{Repo: repo}
+}
+
+func (po *DefaultPodOrchestrator) OrchestratePodCreation(pod *shared.Pod) error {
 	err := scheduler.SchedulePod(pod)
 	if err != nil {
 		return err
 	}
 
-	if err := etcd.CreatePod(pod); err != nil {
+	if err := po.Repo.CreatePod(pod); err != nil {
 		return err
 	}
 

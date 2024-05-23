@@ -12,12 +12,20 @@ import (
 
 var podsKey = "pods/";
 
+type EtcdPodRepository struct {
+	client *clientv3.Client
+}
 
-func ListPods() ([]shared.Pod, error) {
+func NewEtcdPodRepository(client *clientv3.Client) PodRepository {
+	return &EtcdPodRepository{client: client}
+}
+
+
+func (repo *EtcdPodRepository) ListPods() ([]shared.Pod, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := Cli.Get(ctx, podsKey, clientv3.WithPrefix())
+	resp, err := repo.client.Get(ctx, podsKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -33,11 +41,11 @@ func ListPods() ([]shared.Pod, error) {
 	return pods, nil
 }
 
-func GetPodsByDeploymentID(deploymentID string) ([]shared.Pod, error) {
+func (repo *EtcdPodRepository) GetPodsByDeploymentID(deploymentID string) ([]shared.Pod, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := Cli.Get(ctx, podsKey, clientv3.WithPrefix())
+	resp, err := repo.client.Get(ctx, podsKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +63,7 @@ func GetPodsByDeploymentID(deploymentID string) ([]shared.Pod, error) {
 	return pods, nil
 }
 
-func CreatePod(pod *shared.Pod) error {
+func (repo *EtcdPodRepository) CreatePod(pod *shared.Pod) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
@@ -67,7 +75,7 @@ func CreatePod(pod *shared.Pod) error {
 	key := podsKey + pod.ID
 
 	// Start transaction to prevent duplicates
-	txnResp, err := Cli.Txn(ctx).
+	txnResp, err := repo.client.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(podData))).
 		Else(clientv3.OpGet(key)).
@@ -83,13 +91,35 @@ func CreatePod(pod *shared.Pod) error {
 	return nil
 }
 
-func DeletePod(podID string) error {
+func (repo *EtcdPodRepository) UpdatePod(pod *shared.Pod) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	defer cancel()
+
+	podData, err := json.Marshal(pod)
+	if err != nil {
+		return err
+	}
+
+	key := podsKey + pod.ID
+
+	resp, err := repo.client.Put(ctx, key, string(podData))
+	if err != nil {
+		return err
+	}
+
+	if resp.PrevKv == nil {
+		return &shared.ErrNotFound{ID: pod.ID, ResourceType: shared.PodResource}
+	}
+	return nil
+}
+
+func (repo *EtcdPodRepository) DeletePod(podID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
 	key := podsKey + podID
 
-	resp, err := Cli.Delete(ctx, key)
+	resp, err := repo.client.Delete(ctx, key)
 	if err != nil {
 		return err
 	}
