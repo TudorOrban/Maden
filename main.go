@@ -28,12 +28,14 @@ func main() {
 func buildContainer() *dig.Container {
 	container := dig.New()
 
+	container.Provide(etcd.NewClientv3)
 	container.Provide(etcd.NewEtcdClient)
 	container.Provide(madelet.NewDockerClient)
 	container.Provide(etcd.NewEtcdPodRepository)
 	container.Provide(etcd.NewEtcdNodeRepository)
 	container.Provide(etcd.NewEtcdDeploymentRepository)
 	container.Provide(etcd.NewEtcdServiceRepository)
+	container.Provide(etcd.NewEtcdTransactionRepository)
 	container.Provide(madelet.NewContainerRuntimeInterface)
 	container.Provide(scheduler.NewPodScheduler)
 	container.Provide(controller.NewDefaultDeploymentController)

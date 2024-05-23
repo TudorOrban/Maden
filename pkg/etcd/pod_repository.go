@@ -13,11 +13,15 @@ import (
 var podsKey = "pods/";
 
 type EtcdPodRepository struct {
-	client *clientv3.Client
+	client EtcdClient
+	transactioner Transactioner
 }
 
-func NewEtcdPodRepository(client *clientv3.Client) PodRepository {
-	return &EtcdPodRepository{client: client}
+func NewEtcdPodRepository(
+	client EtcdClient,
+	transactioner Transactioner,	
+) PodRepository {
+	return &EtcdPodRepository{client: client, transactioner: transactioner}
 }
 
 
@@ -74,21 +78,7 @@ func (repo *EtcdPodRepository) CreatePod(pod *shared.Pod) error {
 
 	key := podsKey + pod.ID
 
-	// Start transaction to prevent duplicates
-	txnResp, err := repo.client.Txn(ctx).
-		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
-		Then(clientv3.OpPut(key, string(podData))).
-		Else(clientv3.OpGet(key)).
-		Commit()
-
-	if err != nil {
-		return err
-	}
-	if !txnResp.Succeeded {
-		return &shared.ErrDuplicateResource{ID: pod.ID, ResourceType: shared.PodResource}
-	}
-
-	return nil
+    return repo.transactioner.PerformTransaction(ctx, key, string(podData), shared.PodResource)
 }
 
 func (repo *EtcdPodRepository) UpdatePod(pod *shared.Pod) error {

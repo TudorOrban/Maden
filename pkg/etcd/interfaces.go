@@ -1,6 +1,9 @@
 package etcd
 
-import "maden/pkg/shared"
+import (
+	"context"
+	"maden/pkg/shared"
+)
 
 type PodRepository interface {
 	ListPods() ([]shared.Pod, error)
@@ -31,4 +34,8 @@ type ServiceRepository interface {
 	CreateService(service *shared.Service) error
 	UpdateService(service *shared.Service) error
 	DeleteService(serviceName string) error
+}
+
+type Transactioner interface {
+	PerformTransaction(ctx context.Context, key string, value string, resourceType shared.ResourceType) error
 }
