@@ -25,6 +25,17 @@ func NewPodHandler(
 }
 
 
+func (h *PodHandler) listPodsHandler(w http.ResponseWriter, r *http.Request) {
+	pods, err := h.Repo.ListPods()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pods)
+}
+
 func (h *PodHandler) createPodHandler(w http.ResponseWriter, r *http.Request) {
 	var pod shared.Pod
 	if err := json.NewDecoder(r.Body).Decode(&pod); err != nil {
@@ -47,19 +58,6 @@ func (h *PodHandler) createPodHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(pod)
 }
-
-
-func (h *PodHandler) listPodsHandler(w http.ResponseWriter, r *http.Request) {
-	pods, err := h.Repo.ListPods()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pods)
-}
-
 
 func (h *PodHandler) deletePodHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

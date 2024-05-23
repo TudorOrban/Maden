@@ -15,6 +15,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPodHandlerListPodsHandler(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockPodRepository(ctrl)
+	handler := NewPodHandler(mockRepo, nil)
+
+	pods := []shared.Pod{{ID: "1", Name: "test-pod"}}
+	mockRepo.EXPECT().ListPods().Return(pods, nil)
+
+	req, err := http.NewRequest("GET", "/pods", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+
+	handler.listPodsHandler(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	expectedBytes, _ := json.Marshal(pods)
+	expected := string(expectedBytes) + "\n"
+	assert.Equal(t, expected, rr.Body.String())
+}
+
 func TestPodHandlerCreatePodHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -41,32 +67,6 @@ func TestPodHandlerCreatePodHandler(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, rr.Code)
 
 	expected := string(podBytes) + "\n"
-	assert.Equal(t, expected, rr.Body.String())
-}
-
-func TestPodHandlerListPodsHandler(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockPodRepository(ctrl)
-	handler := NewPodHandler(mockRepo, nil)
-
-	pods := []shared.Pod{{ID: "1", Name: "test-pod"}}
-	mockRepo.EXPECT().ListPods().Return(pods, nil)
-
-	req, err := http.NewRequest("GET", "/pods", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-
-	handler.listPodsHandler(rr, req)
-
-	assert.Equal(t, http.StatusOK, rr.Code)
-
-	expectedBytes, _ := json.Marshal(pods)
-	expected := string(expectedBytes) + "\n"
 	assert.Equal(t, expected, rr.Body.String())
 }
 
