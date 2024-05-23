@@ -69,7 +69,7 @@ func (repo *EtcdNodeRepository) UpdateNode(node *shared.Node) error {
 
     key := nodesKey + node.ID
 
-    resp, err := repo.client.Put(ctx, key, string(nodeData))
+    resp, err := repo.client.Put(ctx, key, string(nodeData), clientv3.WithPrevKV())
 	if err != nil {
 		return err
 	}

@@ -89,7 +89,7 @@ func (repo *EtcdDeploymentRepository) UpdateDeployment(deployment *shared.Deploy
 
     key := deploymentsKey + deployment.Name
 
-    resp, err := repo.client.Put(ctx, key, string(deploymentData))
+    resp, err := repo.client.Put(ctx, key, string(deploymentData), clientv3.WithPrevKV())
     if err != nil {
         return err
     }

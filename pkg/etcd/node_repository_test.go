@@ -105,7 +105,7 @@ func TestEtcdNodeRepositoryUpdateNode(t *testing.T) {
     node := &shared.Node{ID: "1", Name: "updated-node"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), nodesKey+node.ID, gomock.Any()).
+        Put(gomock.Any(), nodesKey+node.ID, gomock.Any(), gomock.Any()).
         Return(&clientv3.PutResponse{PrevKv: &mvccpb.KeyValue{}}, nil).Times(1)
 
     // Act
@@ -126,7 +126,7 @@ func TestEtcdNodeRepositoryUpdateNodeErrorOnPut(t *testing.T) {
     node := &shared.Node{ID: "1", Name: "updated-node"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), nodesKey+node.ID, gomock.Any()).
+        Put(gomock.Any(), nodesKey+node.ID, gomock.Any(), gomock.Any()).
         Return(nil, errors.New("etcd put error")).Times(1)
 
     err := repo.UpdateNode(node)
@@ -145,7 +145,7 @@ func TestEtcdNodeRepositoryUpdateNodeNoPreviousKeyValue(t *testing.T) {
     node := &shared.Node{ID: "1", Name: "updated-node"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), nodesKey+node.ID, gomock.Any()).
+        Put(gomock.Any(), nodesKey+node.ID, gomock.Any(), gomock.Any()).
         Return(&clientv3.PutResponse{PrevKv: nil}, nil).Times(1)
 
     err := repo.UpdateNode(node)

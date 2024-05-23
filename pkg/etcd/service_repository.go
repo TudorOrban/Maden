@@ -89,7 +89,7 @@ func (repo *EtcdServiceRepository) UpdateService(service *shared.Service) error 
 
     key := servicesKey + service.Name
 
-    resp, err := repo.client.Put(ctx, key, string(serviceData))
+    resp, err := repo.client.Put(ctx, key, string(serviceData), clientv3.WithPrevKV())
     if err != nil {
         return err
     }

@@ -105,7 +105,7 @@ func TestEtcdServiceRepositoryUpdateService(t *testing.T) {
     service := &shared.Service{ID: "1", Name: "updated-service"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), servicesKey + service.Name, gomock.Any()).
+        Put(gomock.Any(), servicesKey + service.Name, gomock.Any(), gomock.Any()).
         Return(&clientv3.PutResponse{PrevKv: &mvccpb.KeyValue{}}, nil).Times(1)
 
     // Act
@@ -126,7 +126,7 @@ func TestEtcdServiceRepositoryUpdateServiceErrorOnPut(t *testing.T) {
     service := &shared.Service{ID: "1", Name: "updated-service"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), servicesKey + service.Name, gomock.Any()).
+        Put(gomock.Any(), servicesKey + service.Name, gomock.Any(), gomock.Any()).
         Return(nil, errors.New("etcd put error")).Times(1)
 
     err := repo.UpdateService(service)
@@ -145,7 +145,7 @@ func TestEtcdServiceRepositoryUpdateServiceNoPreviousKeyValue(t *testing.T) {
     service := &shared.Service{ID: "1", Name: "updated-service"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), servicesKey+service.Name, gomock.Any()).
+        Put(gomock.Any(), servicesKey+service.Name, gomock.Any(), gomock.Any()).
         Return(&clientv3.PutResponse{PrevKv: nil}, nil).Times(1)
 
     err := repo.UpdateService(service)

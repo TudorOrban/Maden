@@ -92,7 +92,7 @@ func (repo *EtcdPodRepository) UpdatePod(pod *shared.Pod) error {
 
 	key := podsKey + pod.ID
 
-	resp, err := repo.client.Put(ctx, key, string(podData))
+	resp, err := repo.client.Put(ctx, key, string(podData), clientv3.WithPrevKV())
 	if err != nil {
 		return err
 	}

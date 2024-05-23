@@ -105,7 +105,7 @@ func TestEtcdDeploymentRepositoryUpdateDeployment(t *testing.T) {
     deployment := &shared.Deployment{ID: "1", Name: "updated-deployment"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), deploymentsKey + deployment.Name, gomock.Any()).
+        Put(gomock.Any(), deploymentsKey + deployment.Name, gomock.Any(), gomock.Any()).
         Return(&clientv3.PutResponse{PrevKv: &mvccpb.KeyValue{}}, nil).Times(1)
 
     // Act
@@ -126,7 +126,7 @@ func TestEtcdDeploymentRepositoryUpdateDeploymentErrorOnPut(t *testing.T) {
     deployment := &shared.Deployment{ID: "1", Name: "updated-deployment"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), deploymentsKey + deployment.Name, gomock.Any()).
+        Put(gomock.Any(), deploymentsKey + deployment.Name, gomock.Any(), gomock.Any()).
         Return(nil, errors.New("etcd put error")).Times(1)
 
     err := repo.UpdateDeployment(deployment)
@@ -145,7 +145,7 @@ func TestEtcdDeploymentRepositoryUpdateDeploymentNoPreviousKeyValue(t *testing.T
     deployment := &shared.Deployment{ID: "1", Name: "updated-deployment"}
 
     mockClient.EXPECT().
-        Put(gomock.Any(), deploymentsKey+deployment.Name, gomock.Any()).
+        Put(gomock.Any(), deploymentsKey+deployment.Name, gomock.Any(), gomock.Any()).
         Return(&clientv3.PutResponse{PrevKv: nil}, nil).Times(1)
 
     err := repo.UpdateDeployment(deployment)

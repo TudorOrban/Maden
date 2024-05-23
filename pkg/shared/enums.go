@@ -43,8 +43,9 @@ type PodStatus int
 
 const (
 	PodPending PodStatus = iota
-	PodRunning
 	PodScheduled
+	PodContainerCreating
+	PodRunning
 	PodFailed
 )
 
@@ -56,10 +57,12 @@ func (p *PodStatus) UnmarshalJSON(data []byte) error {
 	switch s {
 	case "Pending":
 		*p = PodPending
-	case "Running":
-		*p = PodRunning
 	case "Scheduled":
 		*p = PodScheduled
+	case "ContainerCreating":
+		*p = PodContainerCreating
+	case "Running":
+		*p = PodRunning
 	case "Failed":
 		*p = PodFailed
 	default:
@@ -73,7 +76,7 @@ func (p PodStatus) MarshalJSON() ([]byte, error) {
 }
 
 func (p PodStatus) String() string {
-	return [...]string{"Pending", "Running", "Scheduled", "Failed"}[p]
+	return [...]string{"Pending", "Scheduled", "ContainerCreating", "Running", "Failed"}[p]
 }
 
 
