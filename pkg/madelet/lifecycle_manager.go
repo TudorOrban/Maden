@@ -9,6 +9,11 @@ type PodLifecycleManager struct {
 	Runtime ContainerRuntimeInterface
 }
 
+func NewPodLifecycleManager(runtime ContainerRuntimeInterface) PodLifecycleManager {
+	return PodLifecycleManager{Runtime: runtime}
+}
+
+
 func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 	for _, container := range pod.Containers {
 		containerID, err := p.Runtime.CreateContainer(container.Image)

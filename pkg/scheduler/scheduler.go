@@ -19,9 +19,6 @@ func (s *PodScheduler) SchedulePod(pod *shared.Pod) error {
 		return err
 	}
 
-	etcd.Mu.Lock()
-	defer etcd.Mu.Unlock()
-
 	scheduled := false
 	for i, node := range nodes {
 		if shouldSchedulePod(&node, pod) {

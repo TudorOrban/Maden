@@ -2,7 +2,6 @@ package madelet
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,24 +10,20 @@ import (
 	"github.com/docker/docker/client"
 )
 
-type ContainerRuntimeInterface interface {
-	CreateContainer(image string) (string, error)
-	StartContainer(containerID string) error
-	StopContainer(containerID string) error
-	DeleteContainer(containerID string) error
-	GetContainerLogs(containerID string, follow bool) error
+func NewDockerClient() *client.Client {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Fatalf("Failed to create Docker client: %v", err)
+	}
+	return cli
 }
 
-type DockerRuntime struct{
+type DockerRuntime struct {
 	Client *client.Client
 }
 
-func NewDockerRuntime() (*DockerRuntime, error) {
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Docker client: %v", err)
-	}
-	return &DockerRuntime{Client: cli}, nil	
+func NewContainerRuntimeInterface(client *client.Client) ContainerRuntimeInterface {
+	return &DockerRuntime{Client: client}	
 }
 
 

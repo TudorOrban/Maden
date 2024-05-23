@@ -11,13 +11,15 @@ import (
 type DefaultPodOrchestrator struct {
 	Repo etcd.PodRepository
 	Scheduler scheduler.Scheduler
+	PodManager madelet.PodLifecycleManager
 }
 
 func NewDefaultPodOrchestrator(
 	repo etcd.PodRepository,
 	scheduler scheduler.Scheduler,
+	podManager madelet.PodLifecycleManager,
 ) PodOrchestrator {
-	return &DefaultPodOrchestrator{Repo: repo, Scheduler: scheduler}
+	return &DefaultPodOrchestrator{Repo: repo, Scheduler: scheduler, PodManager: podManager}
 }
 
 func (po *DefaultPodOrchestrator) OrchestratePodCreation(pod *shared.Pod) error {
@@ -30,15 +32,7 @@ func (po *DefaultPodOrchestrator) OrchestratePodCreation(pod *shared.Pod) error 
 		return err
 	}
 
-	dockerRuntime, err := madelet.NewDockerRuntime()
-	if err != nil {
-		return err
-	}
-
-	podLifecycleManager := madelet.PodLifecycleManager{
-		Runtime: dockerRuntime,
-	}
-	go podLifecycleManager.RunPod(pod)
+	go po.PodManager.RunPod(pod)
 
 	return nil
 }
