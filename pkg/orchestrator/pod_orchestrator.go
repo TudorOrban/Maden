@@ -10,14 +10,18 @@ import (
 
 type DefaultPodOrchestrator struct {
 	Repo etcd.PodRepository
+	Scheduler scheduler.Scheduler
 }
 
-func NewDefaultPodOrchestrator(repo etcd.PodRepository) PodOrchestrator {
-	return &DefaultPodOrchestrator{Repo: repo}
+func NewDefaultPodOrchestrator(
+	repo etcd.PodRepository,
+	scheduler scheduler.Scheduler,
+) PodOrchestrator {
+	return &DefaultPodOrchestrator{Repo: repo, Scheduler: scheduler}
 }
 
 func (po *DefaultPodOrchestrator) OrchestratePodCreation(pod *shared.Pod) error {
-	err := scheduler.SchedulePod(pod)
+	err := po.Scheduler.SchedulePod(pod)
 	if err != nil {
 		return err
 	}

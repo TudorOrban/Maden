@@ -12,6 +12,7 @@ import (
 type Server struct {
 	router *mux.Router
 	PodHandler *PodHandler
+	NodeHandler *NodeHandler
 	DeploymentHandler *DeploymentHandler
 	ManifestHandler *ManifestHandler
 
@@ -20,6 +21,7 @@ type Server struct {
 
 func NewServer(
 	podHandler *PodHandler,
+	nodeHandler *NodeHandler,
 	deploymentHandler *DeploymentHandler, 
 	manifestHandler *ManifestHandler,
 	changeListener *controller.EtcdChangeListener,
@@ -27,6 +29,7 @@ func NewServer(
 	s := &Server{
 		router: mux.NewRouter(),
 		PodHandler: podHandler,
+		NodeHandler: nodeHandler,
 		DeploymentHandler: deploymentHandler,
 		ManifestHandler: manifestHandler,
 		ChangeListener: changeListener,
@@ -36,12 +39,15 @@ func NewServer(
 }
 
 func (s *Server) routes() {
-	s.router.HandleFunc("/deployments", s.DeploymentHandler.listDeploymentsHandler).Methods("GET")
-	s.router.HandleFunc("/deployments/{name}", s.DeploymentHandler.deleteDeploymentHandler).Methods("DELETE")
-	s.router.HandleFunc("/manifests", s.ManifestHandler.handleMadenResources).Methods("POST")
 	s.router.HandleFunc("/pods", s.PodHandler.listPodsHandler).Methods("GET")
 	s.router.HandleFunc("/pods", s.PodHandler.createPodHandler).Methods("POST")
 	s.router.HandleFunc("/pods/{id}", s.PodHandler.deletePodHandler).Methods("DELETE")
+	s.router.HandleFunc("/nodes", s.NodeHandler.listNodesHandler).Methods("GET")
+	s.router.HandleFunc("/nodes", s.NodeHandler.createNodeHandler).Methods("POST")
+	s.router.HandleFunc("/nodes/{id}", s.NodeHandler.deleteNodeHandler).Methods("DELETE")
+	s.router.HandleFunc("/deployments", s.DeploymentHandler.listDeploymentsHandler).Methods("GET")
+	s.router.HandleFunc("/deployments/{name}", s.DeploymentHandler.deleteDeploymentHandler).Methods("DELETE")
+	s.router.HandleFunc("/manifests", s.ManifestHandler.handleMadenResources).Methods("POST")
 }
 
 func (s *Server) Start() {
@@ -70,9 +76,9 @@ func InitAPIServer() {
 func registerRoutes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/nodes", listNodesHandler).Methods("GET")
-	r.HandleFunc("/nodes", createNodeHandler).Methods("POST")
-	r.HandleFunc("/nodes/{id}", deleteNodeHandler).Methods("DELETE")
+	// r.HandleFunc("/nodes", listNodesHandler).Methods("GET")
+	// r.HandleFunc("/nodes", createNodeHandler).Methods("POST")
+	// r.HandleFunc("/nodes/{id}", deleteNodeHandler).Methods("DELETE")
 	// r.HandleFunc("/pods", listPodsHandler).Methods("GET")
 	// r.HandleFunc("/pods", createPodHandler).Methods("POST")
 	// r.HandleFunc("/pods/{id}", deletePodHandler).Methods("DELETE")

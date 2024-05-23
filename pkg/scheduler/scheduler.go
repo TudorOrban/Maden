@@ -5,8 +5,16 @@ import (
 	"maden/pkg/shared"
 )
 
-func SchedulePod(pod *shared.Pod) error {
-	nodes, err := etcd.ListNodes()
+type PodScheduler struct {
+	Repo etcd.NodeRepository
+}
+
+func NewPodScheduler(repo etcd.NodeRepository) Scheduler {
+	return &PodScheduler{Repo: repo}
+}
+
+func (s *PodScheduler) SchedulePod(pod *shared.Pod) error {
+	nodes, err := s.Repo.ListNodes()
 	if err != nil {
 		return err
 	}
@@ -22,7 +30,7 @@ func SchedulePod(pod *shared.Pod) error {
 			nodes[i].Used.CPU += pod.Resources.CPU
 			nodes[i].Used.Memory += pod.Resources.Memory
 
-			if err := etcd.UpdateNode(&nodes[i]); err != nil {
+			if err := s.Repo.UpdateNode(&nodes[i]); err != nil {
 				return err
 			}
 

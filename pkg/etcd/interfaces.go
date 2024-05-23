@@ -17,3 +17,10 @@ type PodRepository interface {
 	UpdatePod(pod *shared.Pod) error
 	DeletePod(podID string) error
 }
+
+type NodeRepository interface {
+	ListNodes() ([]shared.Node, error)
+	CreateNode(node *shared.Node) error
+	UpdateNode(node *shared.Node) error
+	DeleteNode(nodeName string) error
+}

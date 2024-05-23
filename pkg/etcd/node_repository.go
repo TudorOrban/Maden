@@ -11,20 +11,20 @@ import (
 
 var nodesKey = "nodes/"
 
-// type EtcdNodeRepository struct {
-// 	client *clientv3.Client
-// }
+type EtcdNodeRepository struct {
+	client *clientv3.Client
+}
 
-// func NewEtcdNodeRepository(client *clientv3.Client) NodeRepository {
-// 	return &EtcdNodeRepository{client: client}
-// }
+func NewEtcdNodeRepository(client *clientv3.Client) NodeRepository {
+	return &EtcdNodeRepository{client: client}
+}
 
 
-func ListNodes() ([]shared.Node, error) {
+func (repo *EtcdNodeRepository) ListNodes() ([]shared.Node, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	resp, err := Cli.Get(ctx, nodesKey, clientv3.WithPrefix())
+	resp, err := repo.client.Get(ctx, nodesKey, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func ListNodes() ([]shared.Node, error) {
 	return nodes, nil
 }
 
-func CreateNode(node *shared.Node) error {
+func (repo *EtcdNodeRepository) CreateNode(node *shared.Node) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
@@ -52,7 +52,7 @@ func CreateNode(node *shared.Node) error {
 	key := nodesKey + node.ID
 
 	// Start transaction to prevent duplicates
-	txnResp, err := Cli.Txn(ctx).
+	txnResp, err := repo.client.Txn(ctx).
 		If(clientv3.Compare(clientv3.Version(key), "=", 0)).
 		Then(clientv3.OpPut(key, string(nodeData))).
 		Else(clientv3.OpGet(key)).
@@ -68,7 +68,7 @@ func CreateNode(node *shared.Node) error {
 	return nil
 }
 
-func UpdateNode(node *shared.Node) error {
+func (repo *EtcdNodeRepository) UpdateNode(node *shared.Node) error {
     ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
     defer cancel()
 
@@ -78,17 +78,17 @@ func UpdateNode(node *shared.Node) error {
     }
 
     key := nodesKey + node.ID
-    _, err = Cli.Put(ctx, key, string(nodeData))
+    _, err = repo.client.Put(ctx, key, string(nodeData))
     return err
 }
 
-func DeleteNode(nodeID string) error {
+func (repo *EtcdNodeRepository) DeleteNode(nodeID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
 	key := nodesKey + nodeID
 
-	resp, err := Cli.Delete(ctx, key)
+	resp, err := repo.client.Delete(ctx, key)
 	if err != nil {
 		return err
 	}
