@@ -79,11 +79,9 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 		containerStatus, err := p.Runtime.GetContainerStatus(container.ContainerID)
 		if err != nil {
 			log.Printf("Failed to get container status: %v", err)
-			return err
+			continue
 		}
-		log.Printf("Container status result %s", containerStatus)
 		if containerStatus != shared.Running {
-			log.Printf("Container %s not running, status: %s", container.ContainerID, containerStatus)
 			continue
 		}
 

@@ -1,6 +1,7 @@
 package madelet
 
 import (
+	"fmt"
 	"maden/pkg/shared"
 
 	"context"
@@ -119,9 +120,14 @@ func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) error 
 }
 
 func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.ContainerStatus, error) {
-	log.Printf("Getting status for container %s", containerID)
+	if containerID == "" {
+		log.Println("Empty container ID provided")
+		return shared.Dead, fmt.Errorf("empty container ID")
+	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	resp, err := d.Client.ContainerInspect(ctx, containerID)
 	if err != nil {
 		log.Printf("Failed to get status for container %s: %v", containerID, err)
