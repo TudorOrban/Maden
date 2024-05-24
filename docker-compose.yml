@@ -9,6 +9,8 @@ services:
       - etcd
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - appnet
 
   etcd:
     image: quay.io/coreos/etcd:v3.4.15
@@ -21,3 +23,9 @@ services:
       - http://0.0.0.0:2379
       - --listen-client-urls
       - http://0.0.0.0:2379
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge

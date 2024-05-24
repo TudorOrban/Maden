@@ -77,49 +77,57 @@ func (h *PodHandler) deletePodHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
-
 func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     podID := vars["id"]
     containerID := r.URL.Query().Get("containerID")
     follow := r.URL.Query().Get("follow") == "true"
 
+    log.Printf("Request to stream logs: PodID=%s, ContainerID=%s, Follow=%t", podID, containerID, follow)
+
     logsReader, err := h.Orchestrator.GetPodLogs(podID, containerID, follow)
     if err != nil {
+        log.Printf("Failed to retrieve logs: %v", err)
         http.Error(w, "Failed to get logs", http.StatusInternalServerError)
         return
     }
     defer logsReader.Close()
 
     w.Header().Set("Content-Type", "text/plain")
+    w.Header().Set("Connection", "keep-alive")
     flusher, ok := w.(http.Flusher)
-    if !ok {
+    if ! ok {
         http.Error(w, "Streaming not supported", http.StatusInternalServerError)
         return
     }
 
-    ctx := r.Context() // Get the context from the request
+    ctx := r.Context()
     w.WriteHeader(http.StatusOK)
+    flusher.Flush()
 
     buf := make([]byte, 1024)
     for {
         select {
         case <-ctx.Done():
-            return // Stop if the client closes the connection
+            log.Printf("HTTP context was canceled, reason: %v", ctx.Err())
+            return
         default:
             n, readErr := logsReader.Read(buf)
             if n > 0 {
                 _, writeErr := w.Write(buf[:n])
                 if writeErr != nil {
-                    return // Stop if we can't write to the response
+                    log.Printf("Failed to write logs: %v", writeErr)
+                    return
                 }
-                flusher.Flush() // Ensure the data is sent to the client immediately
+                flusher.Flush()
             }
             if readErr != nil {
-                if readErr != io.EOF {
-                    log.Printf("Failed to read logs: %v", readErr)
+                if readErr == io.EOF {
+                    log.Println("Reached EOF for logs stream")
+                    return
                 }
-                return // Stop reading if we reach the end or encounter an error
+                log.Printf("Error reading logs: %v", readErr)
+                return
             }
         }
     }
