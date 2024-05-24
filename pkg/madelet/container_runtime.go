@@ -91,8 +91,8 @@ func (d *DockerRuntime) DeleteContainer(containerID string) error {
 func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error) {
 	log.Printf("Getting logs for container %s", containerID)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Hour) // Set a reasonable timeout
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), 1*time.Hour) // Set a reasonable timeout
+	// defer cancel()
 
 	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
 	return d.Client.ContainerLogs(ctx, containerID, options)
@@ -104,8 +104,8 @@ func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.Container
 		return shared.Dead, fmt.Errorf("empty container ID")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	// defer cancel()
 
 	resp, err := d.Client.ContainerInspect(ctx, containerID)
 	if err != nil {

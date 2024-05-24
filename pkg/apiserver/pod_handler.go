@@ -6,6 +6,7 @@ import (
 	"maden/pkg/etcd"
 	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
+	"os"
 
 	"encoding/json"
 	"errors"
@@ -90,8 +91,24 @@ func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
         log.Printf("Failed to retrieve logs: %v", err)
         http.Error(w, "Failed to get logs", http.StatusInternalServerError)
         return
-    }
-    defer logsReader.Close()
+	}
+	defer logsReader.Close()
+
+	if follow {
+		_, err = io.Copy(os.Stdout, logsReader)
+		if err != nil {
+			log.Printf("Failed to stream logs for container %s: %v", containerID, err)
+			return
+		}
+	} else {
+		logContents, err := io.ReadAll(logsReader)
+		if err != nil {
+			log.Printf("Failed to read logs for container %s: %v", containerID, err)
+			return
+		}
+
+		log.Printf("Logs for container %s: %s", containerID, logContents)
+	}
 
     w.Header().Set("Content-Type", "text/plain")
     w.Header().Set("Connection", "keep-alive")
