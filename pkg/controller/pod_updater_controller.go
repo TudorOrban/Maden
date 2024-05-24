@@ -21,9 +21,7 @@ func NewDefaultPodUpdaterController(
 }
 
 
-func (c *DefaultPodUpdaterController) HandlePodUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
-	log.Printf("Pod updated: %s, %v", string(oldKv.Value), string(newKv.Value))
-	
+func (c *DefaultPodUpdaterController) HandlePodUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {	
 	var oldPod shared.Pod
 	if err := json.Unmarshal(oldKv.Value, &oldPod); err != nil {
 		log.Printf("Failed to unmarshal old pod: %v", err)

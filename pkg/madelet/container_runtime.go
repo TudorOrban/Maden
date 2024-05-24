@@ -7,7 +7,6 @@ import (
 	"context"
 	"io"
 	"log"
-	"os"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
@@ -89,34 +88,14 @@ func (d *DockerRuntime) DeleteContainer(containerID string) error {
 	return nil
 }
 
-func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) error {
+func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error) {
 	log.Printf("Getting logs for container %s", containerID)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Hour) // Set a reasonable timeout
+	defer cancel()
+
 	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
-	out, err := d.Client.ContainerLogs(ctx, containerID, options)
-	if err != nil {
-		log.Printf("Failed to get logs for container %s: %v", containerID, err)
-		return err
-	}
-	defer out.Close()
-
-	if follow {
-		_, err = io.Copy(os.Stdout, out)
-		if err != nil {
-			log.Printf("Failed to stream logs for container %s: %v", containerID, err)
-			return err
-		}
-	} else {
-		logContents, err := io.ReadAll(out)
-		if err != nil {
-			log.Printf("Failed to read logs for container %s: %v", containerID, err)
-			return err
-		}
-
-		log.Printf("Logs for container %s: %s", containerID, logContents)
-	}
-	return nil
+	return d.Client.ContainerLogs(ctx, containerID, options)
 }
 
 func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.ContainerStatus, error) {

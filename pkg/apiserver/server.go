@@ -5,6 +5,7 @@ import (
 	"log"
 	"maden/pkg/controller"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -46,6 +47,7 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/pods", s.PodHandler.listPodsHandler).Methods("GET")
 	s.router.HandleFunc("/pods", s.PodHandler.createPodHandler).Methods("POST")
 	s.router.HandleFunc("/pods/{id}", s.PodHandler.deletePodHandler).Methods("DELETE")
+	s.router.HandleFunc("/pods/{id}/logs", s.PodHandler.getPodLogsHandler).Methods("GET")
 	s.router.HandleFunc("/nodes", s.NodeHandler.listNodesHandler).Methods("GET")
 	s.router.HandleFunc("/nodes", s.NodeHandler.createNodeHandler).Methods("POST")
 	s.router.HandleFunc("/nodes/{id}", s.NodeHandler.deleteNodeHandler).Methods("DELETE")
@@ -61,10 +63,19 @@ func (s *Server) Start() {
 	go s.ChangeListener.WatchServices()
 	go s.ChangeListener.WatchPodStatusChanges()
 
-	fmt.Println("Server is running on http://localhost:8080")
-	if err := http.ListenAndServe(":8080", s.router); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: s.router,
+		ReadTimeout: 5 * time.Minute,
+		WriteTimeout: 5 * time.Minute,
+		IdleTimeout: 1 * time.Minute,
 	}
+
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+        log.Fatalf("Failed to start server: %v", err)
+		return
+    }
+	fmt.Println("Server is running on http://localhost:8080")
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,7 @@
 package madelet
 
 import (
+	"io"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
 
@@ -29,10 +30,10 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 
 		p.attemptContainerStart(*containerID, pod)
 
-		if err := p.Runtime.GetContainerLogs(*containerID, true); err != nil {
-			log.Printf("Failed to get container logs: %v", err)
-			return
-		}
+		// if err := p.Runtime.GetContainerLogs(*containerID, true); err != nil {
+		// 	log.Printf("Failed to get container logs: %v", err)
+		// 	return
+		// }
 	}
 }
 
@@ -51,7 +52,7 @@ func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, containe
 		return nil
 	}
 
-	pod.Containers[containerIndex].ContainerID = containerID
+	pod.Containers[containerIndex].ID = containerID
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
 		log.Printf("Failed to update pod with ContainerID: %v", err)
 		return nil
@@ -76,7 +77,7 @@ func (p *PodLifecycleManager) attemptContainerStart(containerID string, pod *sha
 
 func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 	for _, container := range pod.Containers {
-		containerStatus, err := p.Runtime.GetContainerStatus(container.ContainerID)
+		containerStatus, err := p.Runtime.GetContainerStatus(container.ID)
 		if err != nil {
 			log.Printf("Failed to get container status: %v", err)
 			continue
@@ -85,13 +86,39 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 			continue
 		}
 
-		if err := p.Runtime.StopContainer(container.ContainerID); err != nil {
+		if err := p.Runtime.StopContainer(container.ID); err != nil {
 			log.Printf("Failed to stop container: %v", err)
 		}
 
-		if err := p.Runtime.DeleteContainer(container.ContainerID); err != nil {
+		if err := p.Runtime.DeleteContainer(container.ID); err != nil {
 			log.Printf("Failed to remove container: %v", err)
 		}
 	}
 	return nil
+}
+
+func (p *PodLifecycleManager) GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error) {
+	return p.Runtime.GetContainerLogs(containerID, follow)
+	// if err != nil {
+	// 	log.Printf("Failed to get logs for container %s: %v", containerID, err)
+	// 	return nil, err
+	// }
+	// defer out.Close()
+
+	// if follow {
+	// 	_, err = io.Copy(os.Stdout, out)
+	// 	if err != nil {
+	// 		log.Printf("Failed to stream logs for container %s: %v", containerID, err)
+	// 		return err
+	// 	}
+	// } else {
+	// 	logContents, err := io.ReadAll(out)
+	// 	if err != nil {
+	// 		log.Printf("Failed to read logs for container %s: %v", containerID, err)
+	// 		return err
+	// 	}
+
+	// 	log.Printf("Logs for container %s: %s", containerID, logContents)
+	// }
+	// return nil
 }

@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	io "io"
 	shared "maden/pkg/shared"
 	reflect "reflect"
 
@@ -32,6 +33,21 @@ func NewMockPodOrchestrator(ctrl *gomock.Controller) *MockPodOrchestrator {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockPodOrchestrator) EXPECT() *MockPodOrchestratorMockRecorder {
 	return m.recorder
+}
+
+// GetPodLogs mocks base method.
+func (m *MockPodOrchestrator) GetPodLogs(arg0, arg1 string, arg2 bool) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPodLogs", arg0, arg1, arg2)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPodLogs indicates an expected call of GetPodLogs.
+func (mr *MockPodOrchestratorMockRecorder) GetPodLogs(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPodLogs", reflect.TypeOf((*MockPodOrchestrator)(nil).GetPodLogs), arg0, arg1, arg2)
 }
 
 // OrchestratePodCreation mocks base method.

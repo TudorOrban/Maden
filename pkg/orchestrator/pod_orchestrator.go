@@ -1,11 +1,12 @@
 package orchestrator
 
 import (
+	"fmt"
+	"io"
 	"maden/pkg/etcd"
 	"maden/pkg/madelet"
 	"maden/pkg/scheduler"
 	"maden/pkg/shared"
-
 )
 
 type DefaultPodOrchestrator struct {
@@ -47,4 +48,23 @@ func (po *DefaultPodOrchestrator) OrchestratePodDeletion(pod *shared.Pod) error 
 	}
 
 	return nil
+}
+
+func (po *DefaultPodOrchestrator) GetPodLogs(podID string, containerID string, follow bool) (io.ReadCloser, error) {
+	pod, err := po.Repo.GetPodByID(podID)
+	if err != nil {
+		return nil, err
+	}
+
+	actualContainerID := ""
+	if len(pod.Containers) > 1 {
+		if containerID == "" {
+			return nil, fmt.Errorf("containerID is required for pods with multiple containers")
+		}
+		actualContainerID = containerID
+	} else {
+		actualContainerID = pod.Containers[0].ID
+	}
+
+	return po.PodManager.GetContainerLogs(actualContainerID, follow)
 }

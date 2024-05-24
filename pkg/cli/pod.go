@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -100,8 +101,65 @@ func deletePod(podID string) error {
 	return nil
 }
 
+var logsCmd = &cobra.Command{
+	Use: "logs [podID] [containerID]",
+	Short: "Fetch logs for a specific pod and container",
+	Long: `Fetches logs for a specific pod and container by ID. For example:
+
+maden get logs 1234 5678
+
+This command will fetch logs for container 5678 in pod 1234.
+If the pod contains only one container, the containerID can be omitted.`,
+	Args: cobra.RangeArgs(1, 2),
+	Run: func(cmd *cobra.Command, args []string) {
+		podID := args[0]
+		containerID := ""
+		if len(args) > 1 {
+			containerID = args[1]
+		}
+		follow, _ := cmd.Flags().GetBool("follow")
+	
+		url := fmt.Sprintf("http://localhost:8080/pods/%s/logs?containerID=%s&follow=%t", podID, containerID, follow)
+		client := &http.Client{
+			Timeout: 0,
+		}
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			fmt.Println("Error creating request: ", err)
+			return
+		}
+	
+		// Set the request to close the connection upon completion
+		req.Close = false
+		response, err := client.Do(req)
+		if err != nil {
+			fmt.Println("Error fetching logs: ", err)
+			return
+		}
+		defer response.Body.Close()
+	
+		// Use bufio.Reader to handle streaming more robustly
+		reader := bufio.NewReader(response.Body)
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				if err != io.EOF {
+					fmt.Printf("Error reading logs: %v\n", err)
+				}
+				break // Exit the loop if we reach the end of the stream or an error occurs
+			}
+			fmt.Print(line) // Print each line of logs
+		}
+
+		fmt.Println("Stream ended. Press Ctrl+C to terminate.")
+		select {} 
+	},
+}
+
 func init() {
 	getCmd.AddCommand(getPodsCmd)
 	deleteCmd.AddCommand(deletePodCmd)
+	getCmd.AddCommand(logsCmd)
 
+	logsCmd.Flags().BoolP("follow", "f", false, "Follow the logs")
 }
