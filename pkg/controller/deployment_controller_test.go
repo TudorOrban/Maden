@@ -35,13 +35,13 @@ func TestHandleIncomingDeploymentCreateNew(t *testing.T) {
 }
 
 func TestHandleIncomingDeploymentUpdateExisting(t *testing.T) {
+	// Arrange
     ctrl := gomock.NewController(t)
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockDeploymentRepository(ctrl)
     controller := NewDefaultDeploymentController(mockRepo)
 
-    // Setup existing and updated deployment data
     existingDeployment := shared.Deployment{
         ID: "123",
         Name: "test-deployment",
@@ -66,18 +66,16 @@ func TestHandleIncomingDeploymentUpdateExisting(t *testing.T) {
         },
     }
 
-
-    // Setting up the expectations
     mockRepo.EXPECT().GetDeploymentByName("test-deployment").Return(&existingDeployment, nil)
     mockRepo.EXPECT().UpdateDeployment(gomock.Any()).Do(func(deployment *shared.Deployment) {
-        assert.Equal(t, 3, deployment.Replicas) // Check updated replicas
-        assert.Equal(t, "new-image", deployment.Template.Spec.Containers[0].Image) // Additional field check
+        assert.Equal(t, 3, deployment.Replicas)
+        assert.Equal(t, "new-image", deployment.Template.Spec.Containers[0].Image)
     }).Return(nil)
 
-    // Execute the method
+	// Act
     err := controller.HandleIncomingDeployment(deploymentSpec)
 
-    // Assert results
+    // Assert
     assert.NoError(t, err)
 }
 
