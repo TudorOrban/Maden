@@ -13,7 +13,11 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func NewDockerClient() *client.Client {
+func NewDockerClient(client *client.Client) DockerClient {
+	return client
+}
+
+func NewClient() *client.Client {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		log.Fatalf("Failed to create Docker client: %v", err)

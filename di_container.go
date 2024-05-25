@@ -16,6 +16,7 @@ func buildContainer() *dig.Container {
 
 	container.Provide(etcd.NewClientv3)
 	container.Provide(etcd.NewEtcdClient)
+	container.Provide(madelet.NewClient)
 	container.Provide(madelet.NewDockerClient)
 	container.Provide(etcd.NewEtcdPodRepository)
 	container.Provide(etcd.NewEtcdNodeRepository)
