@@ -29,21 +29,6 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 		}
 
 		p.attemptContainerStart(*containerID, pod)
-
-		// logsReader, err := p.Runtime.GetContainerLogs(*containerID, true); 
-		// if err != nil {
-		// 	log.Printf("Failed to get container logs: %v", err)
-		// 	return
-		// }
-
-		// defer logsReader.Close()
-
-		// _, err = io.Copy(os.Stdout, logsReader)
-		// if err != nil {
-		// 	log.Printf("Failed to stream logs for container %s: %v", containerID, err)
-		// 	return
-		// }
-		
 	}
 }
 

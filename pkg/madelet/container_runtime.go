@@ -26,10 +26,10 @@ func NewClient() *client.Client {
 }
 
 type DockerRuntime struct {
-	Client *client.Client
+	Client DockerClient
 }
 
-func NewContainerRuntimeInterface(client *client.Client) ContainerRuntimeInterface {
+func NewContainerRuntimeInterface(client DockerClient) ContainerRuntimeInterface {
 	return &DockerRuntime{Client: client}	
 }
 
@@ -95,8 +95,8 @@ func (d *DockerRuntime) DeleteContainer(containerID string) error {
 func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error) {
 	log.Printf("Getting logs for container %s", containerID)
 
-	ctx, _ := context.WithTimeout(context.Background(), 1*time.Hour) // Set a reasonable timeout
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Hour) // Set a reasonable timeout
+	defer cancel()
 
 	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
 	return d.Client.ContainerLogs(ctx, containerID, options)
@@ -108,8 +108,8 @@ func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.Container
 		return shared.Dead, fmt.Errorf("empty container ID")
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	resp, err := d.Client.ContainerInspect(ctx, containerID)
 	if err != nil {
