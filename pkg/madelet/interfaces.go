@@ -28,3 +28,9 @@ type ContainerRuntimeInterface interface {
 	GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error)
 	GetContainerStatus(containerID string) (shared.ContainerStatus, error)
 }
+
+type PodManager interface {
+	RunPod(pod *shared.Pod)
+	StopPod(pod *shared.Pod) error
+	GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error)
+}

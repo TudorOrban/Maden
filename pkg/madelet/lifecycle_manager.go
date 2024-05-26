@@ -16,8 +16,8 @@ type PodLifecycleManager struct {
 func NewPodLifecycleManager(
 	runtime ContainerRuntimeInterface,
 	podRepo etcd.PodRepository,	
-) PodLifecycleManager {
-	return PodLifecycleManager{Runtime: runtime, PodRepo: podRepo}
+) PodManager {
+	return &PodLifecycleManager{Runtime: runtime, PodRepo: podRepo}
 }
 
 

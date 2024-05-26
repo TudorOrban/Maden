@@ -12,13 +12,13 @@ import (
 type DefaultPodOrchestrator struct {
 	Repo etcd.PodRepository
 	Scheduler scheduler.Scheduler
-	PodManager madelet.PodLifecycleManager
+	PodManager madelet.PodManager
 }
 
 func NewDefaultPodOrchestrator(
 	repo etcd.PodRepository,
 	scheduler scheduler.Scheduler,
-	podManager madelet.PodLifecycleManager,
+	podManager madelet.PodManager,
 ) PodOrchestrator {
 	return &DefaultPodOrchestrator{Repo: repo, Scheduler: scheduler, PodManager: podManager}
 }
