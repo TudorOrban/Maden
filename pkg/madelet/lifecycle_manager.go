@@ -30,6 +30,9 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 		}
 
 		p.attemptContainerStart(*containerID, pod)
+
+		ctx := context.Background()
+		_, _ = p.Runtime.GetContainerLogs(ctx, *containerID, true)
 	}
 }
 

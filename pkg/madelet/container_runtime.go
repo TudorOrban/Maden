@@ -3,6 +3,7 @@ package madelet
 import (
 	"fmt"
 	"maden/pkg/shared"
+	"os"
 
 	"context"
 	"io"
@@ -96,7 +97,23 @@ func (d *DockerRuntime) GetContainerLogs(ctx context.Context, containerID string
 	log.Printf("Getting logs for container %s", containerID)
 
 	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
-	return d.Client.ContainerLogs(ctx, containerID, options)
+	logsReader, err := d.Client.ContainerLogs(ctx, containerID, options)
+
+	if follow {
+		_, err = io.Copy(os.Stdout, logsReader)
+		if err != nil {
+			log.Printf("Failed to stream logs for container %s: %v", containerID, err)
+		}
+	} else {
+		logContents, err := io.ReadAll(logsReader)
+		if err != nil {
+			log.Printf("Failed to read logs for container %s: %v", containerID, err)
+		}
+
+		log.Printf("Logs for container %s: %s", containerID, logContents)
+	}
+
+	return logsReader, nil
 }
 
 func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.ContainerStatus, error) {
