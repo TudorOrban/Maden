@@ -102,10 +102,10 @@ func deletePod(podID string) error {
 }
 
 var logsCmd = &cobra.Command{
-    Use: "logs [podID] [containerID]",
+    Use:   "logs [podID] [containerID]",
     Short: "Fetch logs for a specific pod and container",
-    Long: `Fetches logs for a specific pod and container by ID.`,
-    Args: cobra.RangeArgs(1, 2),
+    Long:  `Fetches logs for a specific pod and container by ID.`,
+    Args:  cobra.RangeArgs(1, 2),
     Run: func(cmd *cobra.Command, args []string) {
         podID := args[0]
         containerID := ""
@@ -116,9 +116,7 @@ var logsCmd = &cobra.Command{
 
         url := fmt.Sprintf("http://localhost:8080/pods/%s/logs?containerID=%s&follow=%t", podID, containerID, follow)
         fmt.Println("Request URL:", url)
-        client := &http.Client{
-            Timeout: 0, // Ensures no timeout for streaming responses
-        }
+        client := &http.Client{Timeout: 0}
         req, err := http.NewRequest("GET", url, nil)
         if err != nil {
             fmt.Println("Error creating request: ", err)
@@ -149,7 +147,7 @@ var logsCmd = &cobra.Command{
 func init() {
 	getCmd.AddCommand(getPodsCmd)
 	deleteCmd.AddCommand(deletePodCmd)
-	getCmd.AddCommand(logsCmd)
+	rootCmd.AddCommand(logsCmd)
 
 	logsCmd.Flags().BoolP("follow", "f", false, "Follow the logs")
 }

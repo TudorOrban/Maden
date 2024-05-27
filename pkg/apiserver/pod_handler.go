@@ -1,13 +1,12 @@
 package apiserver
 
 import (
-	"io"
-	"log"
 	"maden/pkg/etcd"
 	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
-	"os"
 
+	"io"
+	"log"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -78,13 +77,12 @@ func (h *PodHandler) deletePodHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
 func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     podID := vars["id"]
     containerID := r.URL.Query().Get("containerID")
     follow := r.URL.Query().Get("follow") == "true"
-
-    log.Printf("Request to stream logs: PodID=%s, ContainerID=%s, Follow=%t", podID, containerID, follow)
 
     ctx := r.Context()
     logsReader, err := h.Orchestrator.GetPodLogs(ctx, podID, containerID, follow)
@@ -92,29 +90,13 @@ func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
         log.Printf("Failed to retrieve logs: %v", err)
         http.Error(w, "Failed to get logs", http.StatusInternalServerError)
         return
-	}
-	defer logsReader.Close()
-
-	if follow {
-		_, err = io.Copy(os.Stdout, logsReader)
-		if err != nil {
-			log.Printf("Failed to stream logs for container %s: %v", containerID, err)
-			return
-		}
-	} else {
-		logContents, err := io.ReadAll(logsReader)
-		if err != nil {
-			log.Printf("Failed to read logs for container %s: %v", containerID, err)
-			return
-		}
-
-		log.Printf("Logs for container %s: %s", containerID, logContents)
-	}
+    }
+    defer logsReader.Close()
 
     w.Header().Set("Content-Type", "text/plain")
     w.Header().Set("Connection", "keep-alive")
     flusher, ok := w.(http.Flusher)
-    if ! ok {
+    if !ok {
         http.Error(w, "Streaming not supported", http.StatusInternalServerError)
         return
     }

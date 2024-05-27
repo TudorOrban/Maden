@@ -30,9 +30,6 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 		}
 
 		p.attemptContainerStart(*containerID, pod)
-
-		ctx := context.Background()
-		_, _ = p.Runtime.GetContainerLogs(ctx, *containerID, true)
 	}
 }
 
@@ -98,26 +95,4 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 
 func (p *PodLifecycleManager) GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error) {
 	return p.Runtime.GetContainerLogs(ctx, containerID, follow)
-	// if err != nil {
-	// 	log.Printf("Failed to get logs for container %s: %v", containerID, err)
-	// 	return nil, err
-	// }
-	// defer out.Close()
-
-	// if follow {
-	// 	_, err = io.Copy(os.Stdout, out)
-	// 	if err != nil {
-	// 		log.Printf("Failed to stream logs for container %s: %v", containerID, err)
-	// 		return err
-	// 	}
-	// } else {
-	// 	logContents, err := io.ReadAll(out)
-	// 	if err != nil {
-	// 		log.Printf("Failed to read logs for container %s: %v", containerID, err)
-	// 		return err
-	// 	}
-
-	// 	log.Printf("Logs for container %s: %s", containerID, logContents)
-	// }
-	// return nil
 }
