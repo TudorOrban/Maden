@@ -14,7 +14,7 @@ func TestHandleIncomingDeploymentCreateNew(t *testing.T) {
 	// Arrange
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
+	
 	mockRepo := mocks.NewMockDeploymentRepository(ctrl)
 	controller := NewDefaultDeploymentController(mockRepo)
 

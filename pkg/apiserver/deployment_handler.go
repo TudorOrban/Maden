@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"maden/pkg/controller"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
 
@@ -13,6 +14,7 @@ import (
 
 type DeploymentHandler struct {
 	Repo etcd.DeploymentRepository
+	UpdateController controller.DeploymentUpdaterController
 }
 
 func NewDeploymentHandler(repo etcd.DeploymentRepository) *DeploymentHandler {
@@ -47,3 +49,27 @@ func (h *DeploymentHandler) deleteDeploymentHandler(w http.ResponseWriter, r *ht
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *DeploymentHandler) rolloutRestartDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	deploymentName := vars["name"]
+
+	deployment, err := h.Repo.GetDeploymentByName(deploymentName)
+
+	if err != nil {
+		var errNotFound *shared.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	err = h.UpdateController.HandleDeploymentRolloutRestart(deployment)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

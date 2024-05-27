@@ -125,8 +125,56 @@ func deleteDeployment(deploymentID string) error {
 	return nil
 }
 
+var rolloutCmd = &cobra.Command{
+    Use:   "rollout",
+    Short: "Manage rollouts",
+    Long:  `Manage rollouts and their configurations.`,
+}
+
+var rolloutRestartDeploymentCmd = &cobra.Command{
+	Use:   "restart [deploymentName]",
+	Short: "Restarts a Maden deployment",
+	Long: `Restarts a Maden deployment by name. For example:
+
+maden rollout restart example-deployment
+
+This command will restart the deployment named 'example-deployment' in the system.`,
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		deploymentName := args[0]
+
+		err := rolloutRestartDeployment(deploymentName)
+		if err != nil {
+			fmt.Printf("Error restarting deployment: %s\n", err)
+			return
+		}
+		fmt.Printf("Deployment '%s' restarted successfully\n", deploymentName)
+	},
+}
+
+func rolloutRestartDeployment(deploymentName string) error {
+	request, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8080/deployments/%s/rollout-restart", deploymentName), nil)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("failed to rollout restart deployment with status: %s", response.Status)
+	}
+
+	return nil
+}
+
 func init() {
 	getCmd.AddCommand(getDeploymentsCmd)
 	deleteCmd.AddCommand(deleteDeploymentCmd)
-
+	rootCmd.AddCommand(rolloutCmd)
+	rolloutCmd.AddCommand(rolloutRestartDeploymentCmd)
 }

@@ -14,6 +14,7 @@ type DeploymentUpdaterController interface {
 	HandleDeploymentCreate(kv *mvccpb.KeyValue)
 	HandleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue)
 	HandleDeploymentDelete(kv *mvccpb.KeyValue)
+	HandleDeploymentRolloutRestart(deployment *shared.Deployment) error
 }
 
 type ServiceController interface {

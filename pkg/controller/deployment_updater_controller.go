@@ -144,3 +144,25 @@ func getMaxPods(podsCount int, limit int) int {
 	}
 	return maxPods
 }
+
+func (c *DefaultDeploymentUpdaterController) HandleDeploymentRolloutRestart(deployment *shared.Deployment) error {
+	pods, err := c.Repo.GetPodsByDeploymentID(deployment.ID)
+	if err != nil {
+		return err
+	}
+
+	for _, pod := range pods {
+		err := c.Orchestrator.OrchestratePodDeletion(&pod)
+		if err != nil {
+			return err
+		}
+
+		newPod := getPodFromTemplate(deployment.Template, deployment.Name, deployment.ID)
+		err = c.Orchestrator.OrchestratePodCreation(newPod)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

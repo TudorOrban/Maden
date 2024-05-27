@@ -53,6 +53,7 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/nodes/{id}", s.NodeHandler.deleteNodeHandler).Methods("DELETE")
 	s.router.HandleFunc("/deployments", s.DeploymentHandler.listDeploymentsHandler).Methods("GET")
 	s.router.HandleFunc("/deployments/{name}", s.DeploymentHandler.deleteDeploymentHandler).Methods("DELETE")
+	s.router.HandleFunc("/deployments/rollout-restart/{name}", s.DeploymentHandler.rolloutRestartDeploymentHandler).Methods("POST")
 	s.router.HandleFunc("/services", s.ServiceHandler.listServicesHandler).Methods("GET")
 	s.router.HandleFunc("/services/{name}", s.ServiceHandler.deleteServiceHandler).Methods("DELETE")
 	s.router.HandleFunc("/manifests", s.ManifestHandler.handleMadenResources).Methods("POST")
