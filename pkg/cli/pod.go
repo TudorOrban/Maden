@@ -100,6 +100,7 @@ func deletePod(podID string) error {
 
 	return nil
 }
+
 var logsCmd = &cobra.Command{
     Use: "logs [podID] [containerID]",
     Short: "Fetch logs for a specific pod and container",

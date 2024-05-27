@@ -30,7 +30,7 @@ type DockerRuntime struct {
 }
 
 func NewContainerRuntimeInterface(client DockerClient) ContainerRuntimeInterface {
-	return &DockerRuntime{Client: client}	
+	return &DockerRuntime{Client: client}
 }
 
 
@@ -92,11 +92,8 @@ func (d *DockerRuntime) DeleteContainer(containerID string) error {
 	return nil
 }
 
-func (d *DockerRuntime) GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error) {
+func (d *DockerRuntime) GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error) {
 	log.Printf("Getting logs for container %s", containerID)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Hour) // Set a reasonable timeout
-	defer cancel()
 
 	options := container.LogsOptions{ShowStdout: true, ShowStderr: true, Follow: follow}
 	return d.Client.ContainerLogs(ctx, containerID, options)

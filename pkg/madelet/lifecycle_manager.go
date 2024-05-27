@@ -1,6 +1,7 @@
 package madelet
 
 import (
+	"context"
 	"io"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
@@ -92,8 +93,8 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 	return nil
 }
 
-func (p *PodLifecycleManager) GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error) {
-	return p.Runtime.GetContainerLogs(containerID, follow)
+func (p *PodLifecycleManager) GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error) {
+	return p.Runtime.GetContainerLogs(ctx, containerID, follow)
 	// if err != nil {
 	// 	log.Printf("Failed to get logs for container %s: %v", containerID, err)
 	// 	return nil, err

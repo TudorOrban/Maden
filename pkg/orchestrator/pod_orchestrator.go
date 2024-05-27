@@ -1,12 +1,14 @@
 package orchestrator
 
 import (
-	"fmt"
-	"io"
 	"maden/pkg/etcd"
 	"maden/pkg/madelet"
 	"maden/pkg/scheduler"
-	"maden/pkg/shared"
+	"maden/pkg/shared" 
+	
+	"context"
+	"fmt"
+	"io"
 )
 
 type DefaultPodOrchestrator struct {
@@ -50,7 +52,7 @@ func (po *DefaultPodOrchestrator) OrchestratePodDeletion(pod *shared.Pod) error 
 	return nil
 }
 
-func (po *DefaultPodOrchestrator) GetPodLogs(podID string, containerID string, follow bool) (io.ReadCloser, error) {
+func (po *DefaultPodOrchestrator) GetPodLogs(ctx context.Context, podID string, containerID string, follow bool) (io.ReadCloser, error) {
 	pod, err := po.Repo.GetPodByID(podID)
 	if err != nil {
 		return nil, err
@@ -66,5 +68,5 @@ func (po *DefaultPodOrchestrator) GetPodLogs(podID string, containerID string, f
 		actualContainerID = pod.Containers[0].ID
 	}
 
-	return po.PodManager.GetContainerLogs(actualContainerID, follow)
+	return po.PodManager.GetContainerLogs(ctx, actualContainerID, follow)
 }

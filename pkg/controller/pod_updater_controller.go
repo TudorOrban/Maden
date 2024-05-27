@@ -11,11 +11,11 @@ import (
 )
 
 type DefaultPodUpdaterController struct {
-	PodLifecycleManager madelet.PodLifecycleManager
+	PodLifecycleManager madelet.PodManager
 }
 
 func NewDefaultPodUpdaterController(
-	podLifecycleManager madelet.PodLifecycleManager,
+	podLifecycleManager madelet.PodManager,
 ) PodUpdaterController {
 	return &DefaultPodUpdaterController{PodLifecycleManager: podLifecycleManager}
 }

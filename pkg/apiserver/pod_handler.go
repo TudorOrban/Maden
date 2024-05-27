@@ -86,7 +86,8 @@ func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
 
     log.Printf("Request to stream logs: PodID=%s, ContainerID=%s, Follow=%t", podID, containerID, follow)
 
-    logsReader, err := h.Orchestrator.GetPodLogs(podID, containerID, follow)
+    ctx := r.Context()
+    logsReader, err := h.Orchestrator.GetPodLogs(ctx, podID, containerID, follow)
     if err != nil {
         log.Printf("Failed to retrieve logs: %v", err)
         http.Error(w, "Failed to get logs", http.StatusInternalServerError)
@@ -118,7 +119,6 @@ func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    ctx := r.Context()
     w.WriteHeader(http.StatusOK)
     flusher.Flush()
 

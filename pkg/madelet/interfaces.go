@@ -25,12 +25,12 @@ type ContainerRuntimeInterface interface {
 	StartContainer(containerID string) error
 	StopContainer(containerID string) error
 	DeleteContainer(containerID string) error
-	GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error)
+	GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error)
 	GetContainerStatus(containerID string) (shared.ContainerStatus, error)
 }
 
 type PodManager interface {
 	RunPod(pod *shared.Pod)
 	StopPod(pod *shared.Pod) error
-	GetContainerLogs(containerID string, follow bool) (io.ReadCloser, error)
+	GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error)
 }
