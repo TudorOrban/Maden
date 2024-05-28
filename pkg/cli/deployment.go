@@ -2,8 +2,10 @@ package cli
 
 import (
 	"maden/pkg/shared"
-	"strings"
 
+	"bytes"
+	"strconv"
+	"strings"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -64,32 +66,32 @@ func displayDeployments(deployments []shared.Deployment) {
 var deleteDeploymentCmd = &cobra.Command{
 	Use: "deployment [deploymentID]",
 	Short: "Deletes a Maden deployment",
-	Long: `Deletes a Maden deployment by ID. For example:
+	Long: `Deletes a Maden deployment by name. For example:
 	
 maden delete deployment 1234
 
-This command will delete the deployment with ID 1234 from the system`,
+This command will delete the deployment with name 1234 from the system`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		deploymentID := args[0]
+		deploymentName := args[0]
 
-		continueDelete := addDeploymentConfirmationPrompt(deploymentID)
+		continueDelete := addDeploymentConfirmationPrompt(deploymentName)
 		if !continueDelete {
 			return
 		}
 		
-		err := deleteDeployment(deploymentID)
+		err := deleteDeployment(deploymentName)
 		if err != nil {
 			fmt.Printf("Error deleting deployment: %s\n", err)
 			return
 		}
-		fmt.Printf("Deployment %s deleted successfully\n", deploymentID)
+		fmt.Printf("Deployment %s deleted successfully\n", deploymentName)
 	},
 }
 
-func addDeploymentConfirmationPrompt(deploymentID string) bool {
+func addDeploymentConfirmationPrompt(deploymentName string) bool {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Warning: This will delete deployment %s and all associated pods. Continue? (y/n): ", deploymentID)
+	fmt.Printf("Warning: This will delete deployment %s and all associated pods. Continue? (y/n): ", deploymentName)
 	
 	response, err := reader.ReadString('\n')
 	response = strings.TrimSpace(response)
@@ -105,8 +107,8 @@ func addDeploymentConfirmationPrompt(deploymentID string) bool {
 	return true
 }
 
-func deleteDeployment(deploymentID string) error {
-	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8080/deployments/%s", deploymentID), nil)
+func deleteDeployment(deploymentName string) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("http://localhost:8080/deployments/%s", deploymentName), nil)
 	if err != nil {
 		return err
 	}
@@ -172,9 +174,69 @@ func rolloutRestartDeployment(deploymentName string) error {
 	return nil
 }
 
+var scaleDeploymentCmd = &cobra.Command{
+	Use:   "scale [deploymentName] [replicas]",
+	Short: "Scales a Maden deployment",
+	Long: `Scales a Maden deployment by name to the specified number of replicas. For example:
+
+maden scale example-deployment 3
+
+This command will scale the deployment named 'example-deployment' to 3 replicas.`,
+	Args: cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		deploymentName := args[0]
+		replicas, err := strconv.Atoi(args[1])
+		if err != nil {
+			fmt.Printf("Invalid number of replicas: %s\n", args[1])
+			return
+		}
+
+		err = scaleDeployment(deploymentName, replicas)
+		if err != nil {
+			fmt.Printf("Error scaling deployment: %s\n", err)
+			return
+		}
+		fmt.Printf("Deployment '%s' scaled successfully to %d replicas\n", deploymentName, replicas)
+	},
+}
+
+func scaleDeployment(deploymentName string, replicas int) error {
+	scaleRequest := shared.ScaleRequest{Replicas: replicas}
+	requestBody, err := json.Marshal(scaleRequest)
+	if err != nil {
+		return err
+	}
+
+	request, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8080/deployments/%s/scale", deploymentName), bytes.NewBuffer(requestBody))
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusNoContent {
+		responseBody, _ := io.ReadAll(response.Body)
+		return fmt.Errorf("failed to scale deployment with status %s: %s", response.Status, string(responseBody))
+	}
+
+	return nil
+}
+
+func init() {
+	rolloutCmd.AddCommand(scaleDeploymentCmd)
+}
+
+
 func init() {
 	getCmd.AddCommand(getDeploymentsCmd)
 	deleteCmd.AddCommand(deleteDeploymentCmd)
 	rootCmd.AddCommand(rolloutCmd)
 	rolloutCmd.AddCommand(rolloutRestartDeploymentCmd)
+	rootCmd.AddCommand(scaleDeploymentCmd)
 }

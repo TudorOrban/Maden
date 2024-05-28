@@ -150,7 +150,6 @@ func (c *DefaultDeploymentUpdaterController) HandleDeploymentRolloutRestart(depl
 	if err != nil {
 		return err
 	}
-	log.Printf("Pods to restart: %v", pods)
 
 	for _, pod := range pods {
 		err := c.Orchestrator.OrchestratePodDeletion(&pod)

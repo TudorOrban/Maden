@@ -109,3 +109,8 @@ type ServicePort struct {
 	Port int `json:"port" yaml:"port"`
 	TargetPort int `json:"targetPort" yaml:"targetPort"`
 }
+
+// Other 
+type ScaleRequest struct {
+	Replicas int `json:"replicas"`
+}

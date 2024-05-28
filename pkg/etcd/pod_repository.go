@@ -54,7 +54,6 @@ func (repo *EtcdPodRepository) GetPodsByDeploymentID(deploymentID string) ([]sha
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Pods: %v", resp.Kvs)
 
 	pods := make([]shared.Pod, 0)
 	for _, kv := range resp.Kvs {

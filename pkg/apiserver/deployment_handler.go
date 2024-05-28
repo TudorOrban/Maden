@@ -1,7 +1,6 @@
 package apiserver
 
 import (
-	"log"
 	"maden/pkg/controller"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
@@ -68,9 +67,40 @@ func (h *DeploymentHandler) rolloutRestartDeploymentHandler(w http.ResponseWrite
 		}
 		return
 	}
-	log.Printf("Deployment in handler: %v", deployment)
 
 	err = h.UpdateController.HandleDeploymentRolloutRestart(deployment)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *DeploymentHandler) scaleDeploymentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	deploymentName := vars["name"]
+
+	deployment, err := h.Repo.GetDeploymentByName(deploymentName)
+	if err != nil {
+		var errNotFound *shared.ErrNotFound
+		if errors.As(err, &errNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	var scaleRequest shared.ScaleRequest
+	if err := json.NewDecoder(r.Body).Decode(&scaleRequest); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	deployment.Replicas = scaleRequest.Replicas
+
+	err = h.Repo.UpdateDeployment(deployment)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
