@@ -1,7 +1,6 @@
 package etcd
 
 import (
-	"log"
 	"maden/pkg/shared"
 
 	"context"
