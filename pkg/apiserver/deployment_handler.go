@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"log"
 	"maden/pkg/controller"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
@@ -17,8 +18,11 @@ type DeploymentHandler struct {
 	UpdateController controller.DeploymentUpdaterController
 }
 
-func NewDeploymentHandler(repo etcd.DeploymentRepository) *DeploymentHandler {
-	return &DeploymentHandler{Repo: repo}
+func NewDeploymentHandler(
+	repo etcd.DeploymentRepository,
+	updateController controller.DeploymentUpdaterController,
+	) *DeploymentHandler {
+	return &DeploymentHandler{Repo: repo, UpdateController: updateController}
 }
 
 func (h *DeploymentHandler) listDeploymentsHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,6 +68,7 @@ func (h *DeploymentHandler) rolloutRestartDeploymentHandler(w http.ResponseWrite
 		}
 		return
 	}
+	log.Printf("Deployment in handler: %v", deployment)
 
 	err = h.UpdateController.HandleDeploymentRolloutRestart(deployment)
 	if err != nil {

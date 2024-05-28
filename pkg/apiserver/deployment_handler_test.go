@@ -19,7 +19,8 @@ func TestDeploymentHandlerListDeploymentsHandler(t *testing.T) {
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockDeploymentRepository(ctrl)
-    handler := NewDeploymentHandler(mockRepo)
+	mockUpdateController := mocks.NewMockDeploymentUpdaterController(ctrl)
+    handler := NewDeploymentHandler(mockRepo, mockUpdateController)
 
     // Prepare mock data
     deployments := []shared.Deployment{{ID: "1", Name: "Deployment1"}}
@@ -46,7 +47,8 @@ func TestDeploymentHandlerDeleteDeploymentHandler(t *testing.T) {
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockDeploymentRepository(ctrl)
-    handler := NewDeploymentHandler(mockRepo)
+	mockUpdateController := mocks.NewMockDeploymentUpdaterController(ctrl)
+    handler := NewDeploymentHandler(mockRepo, mockUpdateController)
 
     deploymentName := "test-dep"
 

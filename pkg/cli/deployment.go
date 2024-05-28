@@ -153,7 +153,7 @@ This command will restart the deployment named 'example-deployment' in the syste
 }
 
 func rolloutRestartDeployment(deploymentName string) error {
-	request, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8080/deployments/%s/rollout-restart", deploymentName), nil)
+	request, err := http.NewRequest("POST", fmt.Sprintf("http://localhost:8080/deployments/rollout-restart/%s", deploymentName), nil)
 	if err != nil {
 		return err
 	}

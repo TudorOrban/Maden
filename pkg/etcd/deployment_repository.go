@@ -1,9 +1,10 @@
 package etcd
 
 import (
+	"maden/pkg/shared"
+	
 	"context"
 	"encoding/json"
-	"maden/pkg/shared"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -61,6 +62,7 @@ func (repo *EtcdDeploymentRepository) GetDeploymentByName(name string) (*shared.
 	if err := json.Unmarshal(resp.Kvs[0].Value, &deployment); err != nil {
 		return nil, err
 	}
+
 	return &deployment, nil
 } 
 
