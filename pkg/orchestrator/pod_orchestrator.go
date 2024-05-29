@@ -5,7 +5,7 @@ import (
 	"maden/pkg/madelet"
 	"maden/pkg/scheduler"
 	"maden/pkg/shared" 
-	
+
 	"context"
 	"fmt"
 	"io"
@@ -69,4 +69,23 @@ func (po *DefaultPodOrchestrator) GetPodLogs(ctx context.Context, podID string, 
 	}
 
 	return po.PodManager.GetContainerLogs(ctx, actualContainerID, follow)
+}
+
+func (po *DefaultPodOrchestrator) ExecuteContainerCommand(ctx context.Context, podID string, containerID string, cmd []string) (string, error) {
+	pod, err := po.Repo.GetPodByID(podID)
+	if err != nil {
+		return "", err
+	}
+
+	actualContainerID := ""
+	if len(pod.Containers) > 1 {
+		if containerID == "" {
+			return "", fmt.Errorf("containerID is required for pods with multiple containers")
+		}
+		actualContainerID = containerID
+	} else {
+		actualContainerID = pod.Containers[0].ID
+	}
+
+	return po.PodManager.ExecuteCommandInContainer(ctx, actualContainerID, cmd)
 }

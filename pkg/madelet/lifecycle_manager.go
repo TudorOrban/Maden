@@ -7,6 +7,8 @@ import (
 	"maden/pkg/shared"
 
 	"log"
+
+	"github.com/docker/docker/api/types"
 )
 
 type PodLifecycleManager struct {
@@ -95,4 +97,36 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 
 func (p *PodLifecycleManager) GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error) {
 	return p.Runtime.GetContainerLogs(ctx, containerID, follow)
+}
+
+func (p *PodLifecycleManager) ExecuteCommandInContainer(containerID string, command string) (string, error) {
+	ctx := context.Background()
+	execConfig := types.ExecConfig{
+		Cmd: []string{"/bin/sh", "-c", command},
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty: true,
+	}
+
+	execID, err := p.Runtime.Client.ContainerExecCreate(ctx, containerID, execConfig)
+	if err != nil {
+		log.Printf("Failed to create exec command: %v", err)
+		return "", err
+	}
+
+	attachOptions := types.ExecStartCheck{Tty: execConfig.Tty}
+	execAttach, err := d.Client.ContainerExecAttach(ctx, execID.ID, attachOptions)
+	if err != nil {
+		log.Printf("Failed to attach to exec command: %v", err)
+		return "", err
+	}
+	defer execAttach.Close()
+
+	output, err := io.ReadAll(execAttach.Reader)
+	if err != nil {
+		log.Printf("Failed to read exec output: %v", err)
+		return "", err
+	}
+
+	return string(output), nil
 }

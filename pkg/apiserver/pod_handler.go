@@ -1,17 +1,19 @@
 package apiserver
 
 import (
+	"context"
 	"maden/pkg/etcd"
 	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
 
-	"io"
-	"log"
 	"encoding/json"
 	"errors"
+	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type PodHandler struct {
@@ -130,4 +132,44 @@ func (h *PodHandler) getPodLogsHandler(w http.ResponseWriter, r *http.Request) {
             }
         }
     }
+}
+
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool { return true},
+}
+
+func (h *DeploymentHandler) execWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+    podID := vars["id"]
+    containerID, ok := vars["containerId"]
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		http.Error(w, "Could not open websocket connection", http.StatusInternalServerError)
+		return
+	}
+	defer conn.Close()
+
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				log.Printf("error: %v", err)	
+			}
+			break
+		}
+
+		output, execErr := executeCommandInContainer(containerID, string(message))
+		if execErr != nil {
+			log.Printf("Error executing in container: %v", execErr)
+			continue
+		}
+		if err = conn.WriteMessage(websocket.TextMessage, []byte(output)); err != nil {
+			log.Printf("Error sending message: %v", err)
+			break
+		}
+	}
 }

@@ -3,8 +3,8 @@ package madelet
 import (
 	"maden/pkg/shared"
 
-	"fmt"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"time"

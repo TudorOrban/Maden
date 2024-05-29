@@ -18,6 +18,8 @@ type DockerClient interface {
 	ContainerRemove(ctx context.Context, containerID string, options container.RemoveOptions) error
 	ContainerInspect(ctx context.Context, containerID string) (types.ContainerJSON, error)
 	ContainerLogs(ctx context.Context, container string, options container.LogsOptions) (io.ReadCloser, error)
+	ContainerExecCreate(ctx context.Context, containerID string, config types.ExecConfig) (types.IDResponse, error)
+	ContainerExecAttach(ctx context.Context, execID string, config types.ExecStartCheck) (types.HijackedResponse, error)
 }
 
 type ContainerRuntimeInterface interface {
@@ -33,4 +35,5 @@ type PodManager interface {
 	RunPod(pod *shared.Pod)
 	StopPod(pod *shared.Pod) error
 	GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error)
+	ExecuteCommandInContainer(containerID string, command string) (string, error)
 }

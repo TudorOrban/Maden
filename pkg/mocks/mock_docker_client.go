@@ -54,6 +54,36 @@ func (mr *MockDockerClientMockRecorder) ContainerCreate(arg0, arg1, arg2, arg3, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContainerCreate", reflect.TypeOf((*MockDockerClient)(nil).ContainerCreate), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
+// ContainerExecAttach mocks base method.
+func (m *MockDockerClient) ContainerExecAttach(arg0 context.Context, arg1 string, arg2 types.ExecStartCheck) (types.HijackedResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContainerExecAttach", arg0, arg1, arg2)
+	ret0, _ := ret[0].(types.HijackedResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ContainerExecAttach indicates an expected call of ContainerExecAttach.
+func (mr *MockDockerClientMockRecorder) ContainerExecAttach(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContainerExecAttach", reflect.TypeOf((*MockDockerClient)(nil).ContainerExecAttach), arg0, arg1, arg2)
+}
+
+// ContainerExecCreate mocks base method.
+func (m *MockDockerClient) ContainerExecCreate(arg0 context.Context, arg1 string, arg2 types.ExecConfig) (types.IDResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContainerExecCreate", arg0, arg1, arg2)
+	ret0, _ := ret[0].(types.IDResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ContainerExecCreate indicates an expected call of ContainerExecCreate.
+func (mr *MockDockerClientMockRecorder) ContainerExecCreate(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContainerExecCreate", reflect.TypeOf((*MockDockerClient)(nil).ContainerExecCreate), arg0, arg1, arg2)
+}
+
 // ContainerInspect mocks base method.
 func (m *MockDockerClient) ContainerInspect(arg0 context.Context, arg1 string) (types.ContainerJSON, error) {
 	m.ctrl.T.Helper()
