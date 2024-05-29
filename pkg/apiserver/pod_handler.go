@@ -141,6 +141,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func (h *PodHandler) execWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Websocket connection established")
 	vars := mux.Vars(r)
     podID := vars["id"]
     containerID := r.URL.Query().Get("containerID")

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/websocket"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -115,8 +116,8 @@ var logsCmd = &cobra.Command{
         follow, _ := cmd.Flags().GetBool("follow")
 
         url := fmt.Sprintf("http://localhost:8080/pods/%s/logs?containerID=%s&follow=%t", podID, containerID, follow)
-        fmt.Println("Request URL:", url)
-        client := &http.Client{Timeout: 0}
+
+		client := &http.Client{Timeout: 0}
         req, err := http.NewRequest("GET", url, nil)
         if err != nil {
             fmt.Println("Error creating request: ", err)
@@ -143,13 +144,76 @@ var logsCmd = &cobra.Command{
     },
 }
 
+var execCmd = &cobra.Command{
+	Use:   "exec [podID] [containerID]",
+	Short: "Execute commands in a container interactively",
+	Long: `Execute commands in a container of a specific pod interactively. For example:
 
+maden exec pod123 container456   # Specific container
+maden exec pod123                 # Default to the only container in the pod if there is only one
+
+This command opens an interactive session where commands can be typed and executed within the specified container of pod.`,
+	Args: cobra.RangeArgs(1, 2),
+	Run: func(cmd *cobra.Command, args []string) {
+		podID := args[0]
+		containerID := ""
+		if len(args) > 1 {
+			containerID = args[1]
+		}
+
+		// Construct the URL for the WebSocket connection
+		url := fmt.Sprintf("ws://localhost:8080/pods/%s/exec", podID)
+		if containerID != "" {
+			url += fmt.Sprintf("?containerID=%s", containerID)
+		}
+
+		// Connect to the server using WebSocket
+		conn, resp, err := websocket.DefaultDialer.Dial(url, nil)
+		if err != nil {
+			if resp != nil {
+				fmt.Println("HTTP Response Status:", resp.Status)
+				body, _ := io.ReadAll(resp.Body)
+				fmt.Println("HTTP Response Body:", string(body))
+			}
+			fmt.Printf("Error connecting to WebSocket: %v\n", err)
+			return
+		}
+		defer conn.Close()
+
+
+		fmt.Println("Connected to container. Type commands to execute, press CTRL+C to exit.")
+
+		// Reading from stdin and sending to WebSocket
+		go func() {
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				message := scanner.Text()
+				err := conn.WriteMessage(websocket.TextMessage, []byte(message))
+				if err != nil {
+					fmt.Printf("Error sending message: %v\n", err)
+					return
+				}
+			}
+		}()
+
+		// Receiving messages from WebSocket and printing to stdout
+		for {
+			_, message, err := conn.ReadMessage()
+			if err != nil {
+				fmt.Printf("Error receiving message: %v\n", err)
+				return
+			}
+			fmt.Println(string(message))
+		}
+	},
+}
 
 
 func init() {
 	getCmd.AddCommand(getPodsCmd)
 	deleteCmd.AddCommand(deletePodCmd)
 	rootCmd.AddCommand(logsCmd)
+	rootCmd.AddCommand(execCmd)
 
 	logsCmd.Flags().BoolP("follow", "f", false, "Follow the logs")
 }
