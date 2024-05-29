@@ -1,7 +1,6 @@
 package apiserver
 
 import (
-	"context"
 	"maden/pkg/etcd"
 	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
@@ -141,10 +140,10 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true},
 }
 
-func (h *DeploymentHandler) execWebSocketHandler(w http.ResponseWriter, r *http.Request) {
+func (h *PodHandler) execWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
     podID := vars["id"]
-    containerID, ok := vars["containerId"]
+    containerID := r.URL.Query().Get("containerID")
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -152,6 +151,8 @@ func (h *DeploymentHandler) execWebSocketHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	defer conn.Close()
+
+	ctx := r.Context()
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -162,7 +163,7 @@ func (h *DeploymentHandler) execWebSocketHandler(w http.ResponseWriter, r *http.
 			break
 		}
 
-		output, execErr := executeCommandInContainer(containerID, string(message))
+		output, execErr := h.Orchestrator.OrchestrateContainerCommandExecution(ctx, podID, containerID, string(message))
 		if execErr != nil {
 			log.Printf("Error executing in container: %v", execErr)
 			continue

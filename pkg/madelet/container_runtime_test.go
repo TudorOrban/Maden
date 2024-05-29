@@ -20,6 +20,7 @@ func TestCreateContainer(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockClient := mocks.NewMockDockerClient(ctrl)
+	
 	runtime := NewContainerRuntimeInterface(mockClient)
 
 	ctx := context.Background()

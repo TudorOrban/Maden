@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
@@ -120,4 +121,25 @@ func (d *DockerRuntime) GetContainerStatus(containerID string) (shared.Container
 		return shared.Dead, err
 	}
 	return *containerStatus, nil
+}
+
+func (d *DockerRuntime) ExecCommandCreate(ctx context.Context, containerID string, execConfig types.ExecConfig) (string, error) {
+	execID, err := d.Client.ContainerExecCreate(ctx, containerID, execConfig)
+	if err != nil {
+		log.Printf("Failed to create exec command: %v", err)
+		return "", err
+	}
+
+	return execID.ID, nil
+}
+
+func (d *DockerRuntime) ExecCommandAttach(ctx context.Context, execID string, attachConfig types.ExecStartCheck, tty bool) (*types.HijackedResponse, error) {
+	execAttach, err := d.Client.ContainerExecAttach(ctx, execID, attachConfig)
+	if err != nil {
+		log.Printf("Failed to attach to exec command: %v", err)
+		return nil, err
+	}
+	defer execAttach.Close()
+
+	return &execAttach, nil
 }

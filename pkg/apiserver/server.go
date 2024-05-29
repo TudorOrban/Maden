@@ -48,6 +48,7 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/pods", s.PodHandler.createPodHandler).Methods("POST")
 	s.router.HandleFunc("/pods/{id}", s.PodHandler.deletePodHandler).Methods("DELETE")
 	s.router.HandleFunc("/pods/{id}/logs", s.PodHandler.getPodLogsHandler).Methods("GET")
+	s.router.HandleFunc("/pods/{id}/exec", s.PodHandler.execWebSocketHandler).Methods("POST")
 	s.router.HandleFunc("/nodes", s.NodeHandler.listNodesHandler).Methods("GET")
 	s.router.HandleFunc("/nodes", s.NodeHandler.createNodeHandler).Methods("POST")
 	s.router.HandleFunc("/nodes/{id}", s.NodeHandler.deleteNodeHandler).Methods("DELETE")

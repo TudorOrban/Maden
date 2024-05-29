@@ -99,8 +99,7 @@ func (p *PodLifecycleManager) GetContainerLogs(ctx context.Context, containerID 
 	return p.Runtime.GetContainerLogs(ctx, containerID, follow)
 }
 
-func (p *PodLifecycleManager) ExecuteCommandInContainer(containerID string, command string) (string, error) {
-	ctx := context.Background()
+func (p *PodLifecycleManager) ExecuteCommandInContainer(ctx context.Context, containerID string, command string) (string, error) {
 	execConfig := types.ExecConfig{
 		Cmd: []string{"/bin/sh", "-c", command},
 		AttachStdout: true,
@@ -108,19 +107,16 @@ func (p *PodLifecycleManager) ExecuteCommandInContainer(containerID string, comm
 		Tty: true,
 	}
 
-	execID, err := p.Runtime.Client.ContainerExecCreate(ctx, containerID, execConfig)
+	execID, err := p.Runtime.ExecCommandCreate(ctx, containerID, execConfig)
 	if err != nil {
-		log.Printf("Failed to create exec command: %v", err)
 		return "", err
 	}
 
 	attachOptions := types.ExecStartCheck{Tty: execConfig.Tty}
-	execAttach, err := d.Client.ContainerExecAttach(ctx, execID.ID, attachOptions)
+	execAttach, err := p.Runtime.ExecCommandAttach(ctx, execID, attachOptions, execConfig.Tty)
 	if err != nil {
-		log.Printf("Failed to attach to exec command: %v", err)
 		return "", err
 	}
-	defer execAttach.Close()
 
 	output, err := io.ReadAll(execAttach.Reader)
 	if err != nil {

@@ -58,34 +58,34 @@ func (po *DefaultPodOrchestrator) GetPodLogs(ctx context.Context, podID string, 
 		return nil, err
 	}
 
-	actualContainerID := ""
-	if len(pod.Containers) > 1 {
-		if containerID == "" {
-			return nil, fmt.Errorf("containerID is required for pods with multiple containers")
-		}
-		actualContainerID = containerID
-	} else {
-		actualContainerID = pod.Containers[0].ID
+	actualContainerID, err := determineContainerID(pod, containerID)
+	if err != nil {
+		return nil, err
 	}
 
 	return po.PodManager.GetContainerLogs(ctx, actualContainerID, follow)
 }
 
-func (po *DefaultPodOrchestrator) ExecuteContainerCommand(ctx context.Context, podID string, containerID string, cmd []string) (string, error) {
+func (po *DefaultPodOrchestrator) OrchestrateContainerCommandExecution(ctx context.Context, podID string, containerID string, cmd string) (string, error) {
 	pod, err := po.Repo.GetPodByID(podID)
 	if err != nil {
 		return "", err
 	}
 
-	actualContainerID := ""
+	actualContainerID, err := determineContainerID(pod, containerID)
+	if err != nil {
+		return "", err
+	}
+
+	return po.PodManager.ExecuteCommandInContainer(ctx, actualContainerID, cmd)
+}
+
+func determineContainerID(pod *shared.Pod, containerID string) (string, error) {
 	if len(pod.Containers) > 1 {
 		if containerID == "" {
 			return "", fmt.Errorf("containerID is required for pods with multiple containers")
 		}
-		actualContainerID = containerID
-	} else {
-		actualContainerID = pod.Containers[0].ID
+		return containerID, nil
 	}
-
-	return po.PodManager.ExecuteCommandInContainer(ctx, actualContainerID, cmd)
+	return pod.Containers[0].ID, nil
 }

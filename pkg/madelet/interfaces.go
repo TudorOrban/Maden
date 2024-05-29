@@ -29,11 +29,13 @@ type ContainerRuntimeInterface interface {
 	DeleteContainer(containerID string) error
 	GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error)
 	GetContainerStatus(containerID string) (shared.ContainerStatus, error)
+	ExecCommandCreate(ctx context.Context, containerID string, execConfig types.ExecConfig) (string, error)
+	ExecCommandAttach(ctx context.Context, execID string, attachConfig types.ExecStartCheck, tty bool) (*types.HijackedResponse, error)
 }
 
 type PodManager interface {
 	RunPod(pod *shared.Pod)
 	StopPod(pod *shared.Pod) error
 	GetContainerLogs(ctx context.Context, containerID string, follow bool) (io.ReadCloser, error)
-	ExecuteCommandInContainer(containerID string, command string) (string, error)
+	ExecuteCommandInContainer(ctx context.Context, containerID string, command string) (string, error)
 }
