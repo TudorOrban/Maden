@@ -51,6 +51,21 @@ func (mr *MockPodOrchestratorMockRecorder) GetPodLogs(arg0, arg1, arg2, arg3 int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPodLogs", reflect.TypeOf((*MockPodOrchestrator)(nil).GetPodLogs), arg0, arg1, arg2, arg3)
 }
 
+// OrchestrateContainerCommandExecution mocks base method.
+func (m *MockPodOrchestrator) OrchestrateContainerCommandExecution(arg0 context.Context, arg1, arg2, arg3 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrchestrateContainerCommandExecution", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// OrchestrateContainerCommandExecution indicates an expected call of OrchestrateContainerCommandExecution.
+func (mr *MockPodOrchestratorMockRecorder) OrchestrateContainerCommandExecution(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrchestrateContainerCommandExecution", reflect.TypeOf((*MockPodOrchestrator)(nil).OrchestrateContainerCommandExecution), arg0, arg1, arg2, arg3)
+}
+
 // OrchestratePodCreation mocks base method.
 func (m *MockPodOrchestrator) OrchestratePodCreation(arg0 *shared.Pod) error {
 	m.ctrl.T.Helper()

@@ -36,6 +36,21 @@ func (m *MockPodManager) EXPECT() *MockPodManagerMockRecorder {
 	return m.recorder
 }
 
+// ExecuteCommandInContainer mocks base method.
+func (m *MockPodManager) ExecuteCommandInContainer(arg0 context.Context, arg1, arg2 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExecuteCommandInContainer", arg0, arg1, arg2)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExecuteCommandInContainer indicates an expected call of ExecuteCommandInContainer.
+func (mr *MockPodManagerMockRecorder) ExecuteCommandInContainer(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteCommandInContainer", reflect.TypeOf((*MockPodManager)(nil).ExecuteCommandInContainer), arg0, arg1, arg2)
+}
+
 // GetContainerLogs mocks base method.
 func (m *MockPodManager) GetContainerLogs(arg0 context.Context, arg1 string, arg2 bool) (io.ReadCloser, error) {
 	m.ctrl.T.Helper()

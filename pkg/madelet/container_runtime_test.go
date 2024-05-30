@@ -18,9 +18,8 @@ func TestCreateContainer(t *testing.T) {
 	// Arrange
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	mockClient := mocks.NewMockDockerClient(ctrl)
 	
+	mockClient := mocks.NewMockDockerClient(ctrl)
 	runtime := NewContainerRuntimeInterface(mockClient)
 
 	ctx := context.Background()
