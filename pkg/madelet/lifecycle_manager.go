@@ -117,6 +117,7 @@ func (p *PodLifecycleManager) ExecuteCommandInContainer(ctx context.Context, con
 	if err != nil {
 		return "", err
 	}
+	defer execAttach.Close()
 
 	output, err := io.ReadAll(execAttach.Reader)
 	if err != nil {

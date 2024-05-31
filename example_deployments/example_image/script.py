@@ -1,5 +1,5 @@
 import time
 
-for _ in range(2):
-    print("Hello, World x2!")
-    time.sleep(5)
+for _ in range(15):
+    print("Hello, World!")
+    time.sleep(10)

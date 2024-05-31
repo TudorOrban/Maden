@@ -139,7 +139,6 @@ func (d *DockerRuntime) ExecCommandAttach(ctx context.Context, execID string, at
 		log.Printf("Failed to attach to exec command: %v", err)
 		return nil, err
 	}
-	defer execAttach.Close()
 
 	return &execAttach, nil
 }
