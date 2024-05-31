@@ -2,6 +2,7 @@ package madelet
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
@@ -117,8 +118,12 @@ func (p *PodLifecycleManager) ExecuteCommandInContainer(ctx context.Context, con
 	if err != nil {
 		return "", err
 	}
-	defer execAttach.Close()
-
+	
+    if execAttach == nil {
+        return "", fmt.Errorf("execAttach is nil after ExecCommandAttach")
+    }
+    defer execAttach.Close()
+	
 	output, err := io.ReadAll(execAttach.Reader)
 	if err != nil {
 		log.Printf("Failed to read exec output: %v", err)
