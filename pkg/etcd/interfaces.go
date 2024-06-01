@@ -40,3 +40,9 @@ type ServiceRepository interface {
 type Transactioner interface {
 	PerformTransaction(ctx context.Context, key string, value string, resourceType shared.ResourceType) error
 }
+
+type DNSRepository interface {
+	RegisterService(serviceName string, serviceIP string) error
+	DeregisterService(serviceName string) error
+	ResolveService(serviceName string) (string, error)
+}

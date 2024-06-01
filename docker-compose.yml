@@ -6,8 +6,6 @@ services:
     ports:
       - "8080:8080"
       - "53:53/udp"
-    dns:
-      - 127.0.0.1
     depends_on:
       - etcd
     volumes:

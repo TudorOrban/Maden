@@ -87,10 +87,11 @@ const (
 	NodeResource
 	DeploymentResource
 	ServiceResource
+	DNSResource
 )
 
 func (r ResourceType) String() string {
-	return [...]string{"Pod", "Node", "Deployment", "Service"}[r]
+	return [...]string{"Pod", "Node", "Deployment", "Service", "DNSResource"}[r]
 }
 
 type RestartPolicy int
@@ -144,11 +145,10 @@ func (c *ContainerStatus) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	containerStatus, err := GetStatusFromString(s)
+	c, err := GetStatusFromString(s)
 	if err != nil {
 		return err
 	}
-	c = containerStatus
 	return nil
 }
 

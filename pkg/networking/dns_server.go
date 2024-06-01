@@ -7,6 +7,7 @@ import (
 	"github.com/miekg/dns"
 )
 
+
 func StartDNSServer() {
 	dns.HandleFunc("cluster.local.", handleDNSQuery)
 	server := &dns.Server{Addr: ":53", Net: "udp"}
@@ -37,4 +38,12 @@ func handleDNSQuery(w dns.ResponseWriter, r *dns.Msg) {
 
 var serviceIPMap = map[string]string{
 	"redis-service.cluster.local.": "10.0.0.10",
+}
+
+func registerService(name, ip string) {
+    serviceIPMap[name] = ip
+}
+
+func deregisterService(name string) {
+    delete(serviceIPMap, name)
 }
