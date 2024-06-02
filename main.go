@@ -17,7 +17,13 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		networking.StartDNSServer()
+
+		err := container.Invoke(func(dnsServer *networking.DNSServer) {
+			dnsServer.StartDNSServer();
+		})
+		if err != nil {
+			log.Fatalf("Failed to invoke DI container: %v", err)
+		}
 	}()
 
 	wg.Add(1)

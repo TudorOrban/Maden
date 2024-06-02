@@ -5,6 +5,7 @@ import (
 	"maden/pkg/controller"
 	"maden/pkg/etcd"
 	"maden/pkg/madelet"
+	"maden/pkg/networking"
 	"maden/pkg/orchestrator"
 	"maden/pkg/scheduler"
 
@@ -23,6 +24,7 @@ func buildContainer() *dig.Container {
 	container.Provide(etcd.NewEtcdDeploymentRepository)
 	container.Provide(etcd.NewEtcdServiceRepository)
 	container.Provide(etcd.NewEtcdTransactionRepository)
+	container.Provide(etcd.NewEtcdDNSRepository)
 	container.Provide(madelet.NewContainerRuntimeInterface)
 	container.Provide(scheduler.NewPodScheduler)
 	container.Provide(controller.NewDefaultDeploymentController)
@@ -38,7 +40,9 @@ func buildContainer() *dig.Container {
 	container.Provide(apiserver.NewDeploymentHandler)
 	container.Provide(apiserver.NewServiceHandler)
 	container.Provide(apiserver.NewManifestHandler)
+	container.Provide(apiserver.NewDNSHandler)
 	container.Provide(apiserver.NewServer)
+	container.Provide(networking.NewDNSServer)
 
 	return container
 }
