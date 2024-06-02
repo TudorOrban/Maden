@@ -3,6 +3,7 @@ package etcd
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"go.etcd.io/etcd/client/v3"
@@ -28,4 +29,21 @@ func NewClientv3() *clientv3.Client {
 		log.Fatalf("Failed to connect to etcd: %v", err)
 	}
 	return client
+}
+
+var etcdClientInstance *clientv3.Client
+var once sync.Once
+
+func ProvideEtcdClient() *clientv3.Client {
+    once.Do(func() {
+        client, err := clientv3.New(clientv3.Config{
+            Endpoints:   []string{"etcd:2379"},
+            DialTimeout: 5 * time.Second,
+        })
+        if err != nil {
+            log.Fatalf("Failed to connect to etcd: %v", err)
+        }
+        etcdClientInstance = client
+    })
+    return etcdClientInstance
 }
