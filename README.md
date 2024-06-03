@@ -3,14 +3,14 @@
 **Maden** is a minimal, lightweight container orchestration tool. It can be used for basic local development. The architecture closely mirrors that of Kubernetes, with:
 - pods able to run multiple (Docker) containers; they support pod replicas, affinities/anti-affinities, tolerations, restart policies
 - deployments and services; they can be configured through yaml manifests as usual
-- schedulers determining how to schedule pods based on available resources (only virtual for now)
+- schedulers determining how to schedule pods based on available resources (only virtual for now), affinities etc.
 - controllers ensuring the state of the system reflects the defined configuration
 - an etcd data source storing pods, nodes etc.
-- an API server allowing interaction with the resources
+- an API server allowing interaction with the Maden resources
 - a CLI tool to interact with the API server
 
 ### How to use
-Will be packaged soon. For now, you can use Maden by following these steps:
+Maden will be packaged soon. For now, you can use it by following these steps:
 1. Ensure you have golang and Docker installed and fetch the repository.
 2. Run `docker build -t maden:latest .` and `docker-compose up` to start the server.
 3. Run `cd cmd\madencli` and `go build -o madencli.exe` to build the CLI tool.
