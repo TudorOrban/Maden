@@ -36,6 +36,7 @@ func buildContainer() *dig.Container {
 	container.Provide(controller.NewEtcdChangeListener)
 	container.Provide(madelet.NewPodLifecycleManager)
 	container.Provide(orchestrator.NewDefaultPodOrchestrator)
+	container.Provide(networking.NewSimpleIPManager)
 	container.Provide(apiserver.NewPodHandler)
 	container.Provide(apiserver.NewNodeHandler)
 	container.Provide(apiserver.NewDeploymentHandler)

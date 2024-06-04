@@ -1,18 +1,16 @@
-package networking
+package apiserver
 
 import (
-	"maden/pkg/apiserver"
-
 	"log"
 
 	"github.com/miekg/dns"
 )
 
 type DNSServer struct {
-	DNSHandler *apiserver.DNSHandler
+	DNSHandler *DNSHandler
 }
 
-func NewDNSServer(dnsHandler *apiserver.DNSHandler) *DNSServer {
+func NewDNSServer(dnsHandler *DNSHandler) *DNSServer {
 	return &DNSServer{DNSHandler: dnsHandler}
 }
 

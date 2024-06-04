@@ -145,7 +145,7 @@ func (c *ContainerStatus) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &s); err != nil {
 		return err
 	}
-	c, err := GetStatusFromString(s)
+	_, err := GetStatusFromString(s)
 	if err != nil {
 		return err
 	}

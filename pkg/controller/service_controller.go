@@ -2,17 +2,24 @@ package controller
 
 import (
 	"maden/pkg/etcd"
+	"maden/pkg/networking"
 	"maden/pkg/shared"
-	
+
 	"fmt"
 )
 
 type DefaultServiceController struct {
 	Repo etcd.ServiceRepository
+	DNSRepo etcd.DNSRepository
+	IPManager networking.IPManager
 }
 
-func NewDefaultServiceController(repo etcd.ServiceRepository) ServiceController {
-	return &DefaultServiceController{Repo: repo}
+func NewDefaultServiceController(
+	repo etcd.ServiceRepository,
+	dnsRepo etcd.DNSRepository,
+	ipManager networking.IPManager,
+) ServiceController {
+	return &DefaultServiceController{Repo: repo, DNSRepo: dnsRepo, IPManager: ipManager}
 }
 
 func (c *DefaultServiceController) HandleIncomingService(serviceSpec shared.ServiceSpec) error {
@@ -21,7 +28,19 @@ func (c *DefaultServiceController) HandleIncomingService(serviceSpec shared.Serv
 		if _, ok := err.(*shared.ErrNotFound); ok {
 			fmt.Println("Creating service")
 			service := transformToService(serviceSpec)
-			return c.Repo.CreateService(&service)
+			
+			ip, err := c.IPManager.AssignIP()
+			if err != nil {
+				return err
+			}
+			service.IP = ip
+
+			err = c.Repo.CreateService(&service)
+			if err != nil {
+				return err
+			}
+
+			c.DNSRepo.RegisterService(service.Name, service.IP)
 		} else {
 			return err
 		}
@@ -29,8 +48,13 @@ func (c *DefaultServiceController) HandleIncomingService(serviceSpec shared.Serv
 
 	if needsServiceUpdate(serviceSpec, existingService) {
 		fmt.Println("Updating service")
-		existingService := updateExistingService(serviceSpec, existingService)
-		return c.Repo.UpdateService(&existingService)
+		updatedService := updateExistingService(serviceSpec, existingService)
+		err = c.Repo.UpdateService(&updatedService)
+		if err != nil {
+			return err
+		}
+		
+		c.DNSRepo.RegisterService(updatedService.Name, updatedService.IP)
 	}
 
 	fmt.Println("No update required for service: ", serviceSpec.Name)

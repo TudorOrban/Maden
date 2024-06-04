@@ -103,6 +103,7 @@ type Service struct {
 	Name string `json:"name" yaml:"name"`
 	Selector map[string]string `json:"selector" yaml:"selector"`
 	Ports []ServicePort `json:"ports" yaml:"ports"`
+	IP string `json:"ip" yaml:"ip"`
 }
 
 type ServicePort struct {
