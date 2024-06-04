@@ -21,11 +21,11 @@ spec:
 apiVersion: v1
 kind: Service
 spec:
-  name: example-service3
+  name: example-service5
   selector:
     app: example
   ports:
     - protocol: TCP
-      port: 80
+      port: 81
       targetPort: 82
   type: LoadBalancer

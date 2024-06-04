@@ -46,14 +46,14 @@ func (c *DefaultServiceController) HandleIncomingService(serviceSpec shared.Serv
 		}
 	}
 
-	if needsServiceUpdate(serviceSpec, existingService) {
+	if existingService != nil && needsServiceUpdate(serviceSpec, existingService) {
 		fmt.Println("Updating service")
 		updatedService := updateExistingService(serviceSpec, existingService)
 		err = c.Repo.UpdateService(&updatedService)
 		if err != nil {
 			return err
 		}
-		
+
 		c.DNSRepo.RegisterService(updatedService.Name, updatedService.IP)
 	}
 

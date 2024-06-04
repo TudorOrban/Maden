@@ -16,7 +16,9 @@ func TestHandleIncomingServiceCreateNew(t *testing.T) {
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockServiceRepository(ctrl)
-    controller := NewDefaultServiceController(mockRepo)
+	mockDNSRepo := mocks.NewMockDNSRepository(ctrl)
+	mockIPManager := mocks.NewMockIPManager(ctrl)
+    controller := NewDefaultServiceController(mockRepo, mockDNSRepo, mockIPManager)
 
     serviceSpec := shared.ServiceSpec{Name: "test-service", Selector: map[string]string{"app": "myapp"}, Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}}}
     expectedService := transformToService(serviceSpec)
@@ -27,6 +29,8 @@ func TestHandleIncomingServiceCreateNew(t *testing.T) {
         assert.True(t, areMapsEqual(expectedService.Selector, service.Selector))
         assert.True(t, arePortsEqual(expectedService.Ports, service.Ports))
     }).Return(nil)
+	mockDNSRepo.EXPECT().RegisterService("test-service", gomock.Any()).Return(nil)
+	mockIPManager.EXPECT().AssignIP().Return(gomock.Any().String(), nil)
 
     // Act
     err := controller.HandleIncomingService(serviceSpec)
@@ -41,7 +45,9 @@ func TestHandleIncomingServiceUpdateExisting(t *testing.T) {
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockServiceRepository(ctrl)
-    controller := NewDefaultServiceController(mockRepo)
+	mockDNSRepo := mocks.NewMockDNSRepository(ctrl)
+	mockIPManager := mocks.NewMockIPManager(ctrl)
+    controller := NewDefaultServiceController(mockRepo, mockDNSRepo, mockIPManager)
 
     existingService := shared.Service{
         ID: "123",
@@ -60,6 +66,7 @@ func TestHandleIncomingServiceUpdateExisting(t *testing.T) {
         assert.Equal(t, "newapp", service.Selector["app"])
         assert.Equal(t, 9090, service.Ports[0].TargetPort)
     }).Return(nil)
+	mockDNSRepo.EXPECT().RegisterService("test-service", gomock.Any()).Return(nil)
 
     // Act
     err := controller.HandleIncomingService(serviceSpec)
@@ -74,7 +81,9 @@ func TestHandleIncomingServiceNoOperationNeeded(t *testing.T) {
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockServiceRepository(ctrl)
-    controller := NewDefaultServiceController(mockRepo)
+	mockDNSRepo := mocks.NewMockDNSRepository(ctrl)
+	mockIPManager := mocks.NewMockIPManager(ctrl)
+    controller := NewDefaultServiceController(mockRepo, mockDNSRepo, mockIPManager)
 
     existingService := shared.Service{
         ID: "123",

@@ -44,7 +44,7 @@ func buildContainer() *dig.Container {
 	container.Provide(apiserver.NewManifestHandler)
 	container.Provide(apiserver.NewDNSHandler)
 	container.Provide(apiserver.NewServer)
-	container.Provide(networking.NewDNSServer)
+	container.Provide(apiserver.NewDNSServer)
 
 	return container
 }

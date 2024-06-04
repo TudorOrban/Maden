@@ -2,7 +2,6 @@ package main
 
 import (
 	"maden/pkg/apiserver"
-	"maden/pkg/networking"
 	"sync"
 
 	"log"
@@ -18,7 +17,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		err := container.Invoke(func(dnsServer *networking.DNSServer) {
+		err := container.Invoke(func(dnsServer *apiserver.DNSServer) {
 			dnsServer.StartDNSServer();
 		})
 		if err != nil {
