@@ -15,7 +15,6 @@ import (
 func buildContainer() *dig.Container {
 	container := dig.New()
 
-	container.Provide(etcd.NewClientv3)
 	container.Provide(etcd.NewEtcdClient)
 	container.Provide(etcd.ProvideEtcdClient)
 	container.Provide(madelet.NewClient)
@@ -36,7 +35,10 @@ func buildContainer() *dig.Container {
 	container.Provide(controller.NewEtcdChangeListener)
 	container.Provide(madelet.NewPodLifecycleManager)
 	container.Provide(orchestrator.NewDefaultPodOrchestrator)
-	container.Provide(networking.NewSimpleIPManager)
+	container.Provide(orchestrator.NewDefaultServiceOrchestrator)
+	container.Provide(func() networking.IPManager {
+		return networking.NewSimpleIPManager()
+	})
 	container.Provide(apiserver.NewPodHandler)
 	container.Provide(apiserver.NewNodeHandler)
 	container.Provide(apiserver.NewDeploymentHandler)

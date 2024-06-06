@@ -2,21 +2,26 @@ package apiserver
 
 import (
 	"maden/pkg/etcd"
+	"maden/pkg/orchestrator"
 	"maden/pkg/shared"
 
 	"encoding/json"
-	"net/http"
 	"errors"
+	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type ServiceHandler struct {
 	Repo etcd.ServiceRepository
+	SvcOrchestrator orchestrator.ServiceOrchestrator
 }
 
-func NewServiceHandler(repo etcd.ServiceRepository) *ServiceHandler {
-	return &ServiceHandler{Repo: repo}
+func NewServiceHandler(
+	repo etcd.ServiceRepository,
+	svcOrchestrator orchestrator.ServiceOrchestrator,
+	) *ServiceHandler {
+	return &ServiceHandler{Repo: repo, SvcOrchestrator: svcOrchestrator}
 }
 
 func (h *ServiceHandler) listServicesHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +39,7 @@ func (h *ServiceHandler) deleteServiceHandler(w http.ResponseWriter, r *http.Req
 	vars := mux.Vars(r)
 	serviceName := vars["name"]
 
-	if err := h.Repo.DeleteService(serviceName); err != nil {
+	if err := h.SvcOrchestrator.OrchestrateServiceDeletion(serviceName); err != nil {
 		var errNotFound *shared.ErrNotFound
 		if errors.As(err, &errNotFound) {
 			w.WriteHeader(http.StatusNotFound)

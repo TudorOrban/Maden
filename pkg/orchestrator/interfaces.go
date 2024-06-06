@@ -12,3 +12,7 @@ type PodOrchestrator interface {
 	GetPodLogs(ctx context.Context, podID string, containerID string, follow bool) (io.ReadCloser, error)
 	OrchestrateContainerCommandExecution(ctx context.Context, podID string, containerID string, cmd string) (string, error)
 }
+
+type ServiceOrchestrator interface {
+	OrchestrateServiceDeletion(serviceName string) error
+}

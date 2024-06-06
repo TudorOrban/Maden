@@ -25,7 +25,7 @@ func (manager *SimpleIPManager) AssignIP() (string, error) {
 }
 
 func (manager *SimpleIPManager) ReleaseIP(ip string) error {
-	if manager.usedIPs[ip] {
+	if !manager.usedIPs[ip] {
 		return fmt.Errorf("IP %s is not in use", ip)
 	}
 	manager.availableIPs = append(manager.availableIPs, ip)

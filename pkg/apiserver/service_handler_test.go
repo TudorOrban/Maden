@@ -19,7 +19,7 @@ func TestServiceHandlerListServicesHandler(t *testing.T) {
     defer ctrl.Finish()
 
     mockRepo := mocks.NewMockServiceRepository(ctrl)
-    handler := NewServiceHandler(mockRepo)
+    handler := NewServiceHandler(mockRepo, nil)
 
     // Prepare mock data
     services := []shared.Service{{ID: "1", Name: "Service1"}}
@@ -44,9 +44,10 @@ func TestServiceHandlerListServicesHandler(t *testing.T) {
 func TestServiceHandlerDeleteServiceHandler(t *testing.T) {
     ctrl := gomock.NewController(t)
     defer ctrl.Finish()
-
+	
     mockRepo := mocks.NewMockServiceRepository(ctrl)
-    handler := NewServiceHandler(mockRepo)
+	mockOrchestrator := mocks.NewMockServiceOrchestrator(ctrl)
+    handler := NewServiceHandler(mockRepo, mockOrchestrator)
 
     serviceName := "test-dep"
 
