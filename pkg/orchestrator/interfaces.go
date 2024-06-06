@@ -14,5 +14,7 @@ type PodOrchestrator interface {
 }
 
 type ServiceOrchestrator interface {
+	OrchestrateServiceCreation(serviceSpec shared.ServiceSpec) error
+	OrchestrateServiceUpdate(existingService shared.Service, serviceSpec shared.ServiceSpec) error
 	OrchestrateServiceDeletion(serviceName string) error
 }

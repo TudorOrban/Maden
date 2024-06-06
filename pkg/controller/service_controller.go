@@ -2,86 +2,44 @@ package controller
 
 import (
 	"maden/pkg/etcd"
-	"maden/pkg/networking"
 	"maden/pkg/shared"
+	"maden/pkg/orchestrator"
 
 	"fmt"
 )
 
 type DefaultServiceController struct {
 	Repo etcd.ServiceRepository
-	DNSRepo etcd.DNSRepository
-	IPManager networking.IPManager
+	SvcOrchestrator orchestrator.ServiceOrchestrator
 }
 
 func NewDefaultServiceController(
 	repo etcd.ServiceRepository,
-	dnsRepo etcd.DNSRepository,
-	ipManager networking.IPManager,
+	svcOrchestrator orchestrator.ServiceOrchestrator,
 ) ServiceController {
-	return &DefaultServiceController{Repo: repo, DNSRepo: dnsRepo, IPManager: ipManager}
+	return &DefaultServiceController{Repo: repo, SvcOrchestrator: svcOrchestrator}
 }
 
 func (c *DefaultServiceController) HandleIncomingService(serviceSpec shared.ServiceSpec) error {
 	existingService, err := c.Repo.GetServiceByName(serviceSpec.Name)
 	if err != nil {
-		if _, ok := err.(*shared.ErrNotFound); ok {
-			fmt.Println("Creating service")
-			service := transformToService(serviceSpec)
-			
-			ip, err := c.IPManager.AssignIP()
-			if err != nil {
-				return err
-			}
-			service.IP = ip
-
-			err = c.Repo.CreateService(&service)
-			if err != nil {
-				return err
-			}
-
-			c.DNSRepo.RegisterService(service.Name, service.IP)
-		} else {
-			return err
-		}
+		return c.SvcOrchestrator.OrchestrateServiceCreation(serviceSpec)
 	}
 
 	if existingService != nil && needsServiceUpdate(serviceSpec, existingService) {
-		fmt.Println("Updating service")
-		updatedService := updateExistingService(serviceSpec, existingService)
-		err = c.Repo.UpdateService(&updatedService)
-		if err != nil {
-			return err
-		}
-
-		c.DNSRepo.RegisterService(updatedService.Name, updatedService.IP)
+		c.SvcOrchestrator.OrchestrateServiceUpdate(*existingService, serviceSpec)
 	}
 
 	fmt.Println("No update required for service: ", serviceSpec.Name)
 	return nil
 }
 
-func transformToService(spec shared.ServiceSpec) shared.Service {
-	id := shared.GenerateRandomString(10)
-	service := shared.Service{
-		ID: id,
-		Name: spec.Name,
-		Selector: spec.Selector,
-		Ports: spec.Ports,
-	}
-	return service
-}
 
 func needsServiceUpdate(spec shared.ServiceSpec, existing *shared.Service) bool {
 	return !areMapsEqual(spec.Selector, existing.Selector) || 
 	!arePortsEqual(spec.Ports, existing.Ports)
 }
 
-func updateExistingService(spec shared.ServiceSpec, existing *shared.Service) shared.Service {
-	(*existing).Selector = spec.Selector
-	(*existing).Ports = spec.Ports
-	return *existing
-}
 
 // Comparisons
 func areMapsEqual(a, b map[string]string) bool {

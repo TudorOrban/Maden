@@ -1,8 +1,10 @@
 package orchestrator
 
 import (
+	"fmt"
 	"maden/pkg/etcd"
 	"maden/pkg/networking"
+	"maden/pkg/shared"
 
 	"log"
 )
@@ -19,6 +21,54 @@ func NewDefaultServiceOrchestrator(
 	ipManager networking.IPManager,
 ) ServiceOrchestrator {
 	return &DefaultServiceOrchestrator{Repo: repo, DNSRepo: dnsRepo, IPManager: ipManager}
+}
+
+func (o *DefaultServiceOrchestrator) OrchestrateServiceCreation(serviceSpec shared.ServiceSpec) error {
+	service := transformToService(serviceSpec)
+
+	ip, err := o.IPManager.AssignIP()
+	if err != nil {
+		return err
+	}
+	service.IP = ip
+
+	if err := o.Repo.CreateService(&service); err != nil {
+		return err
+	}
+
+	if err := o.DNSRepo.RegisterService(service.Name, service.IP); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func transformToService(spec shared.ServiceSpec) shared.Service {
+	id := shared.GenerateRandomString(10)
+	service := shared.Service{
+		ID: id,
+		Name: spec.Name,
+		Selector: spec.Selector,
+		Ports: spec.Ports,
+	}
+	return service
+}
+
+func (o *DefaultServiceOrchestrator) OrchestrateServiceUpdate(existingService shared.Service, serviceSpec shared.ServiceSpec) error {
+	fmt.Println("Updating service")
+	updatedService := updateExistingService(serviceSpec, &existingService)
+	err := o.Repo.UpdateService(&updatedService)
+	if err != nil {
+		return err
+	}
+
+	return o.DNSRepo.RegisterService(updatedService.Name, updatedService.IP)
+}
+
+func updateExistingService(spec shared.ServiceSpec, existing *shared.Service) shared.Service {
+	(*existing).Selector = spec.Selector
+	(*existing).Ports = spec.Ports
+	return *existing
 }
 
 func (o *DefaultServiceOrchestrator) OrchestrateServiceDeletion(serviceName string) error {

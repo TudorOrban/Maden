@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	shared "maden/pkg/shared"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -33,6 +34,20 @@ func (m *MockServiceOrchestrator) EXPECT() *MockServiceOrchestratorMockRecorder 
 	return m.recorder
 }
 
+// OrchestrateServiceCreation mocks base method.
+func (m *MockServiceOrchestrator) OrchestrateServiceCreation(arg0 shared.ServiceSpec) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrchestrateServiceCreation", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OrchestrateServiceCreation indicates an expected call of OrchestrateServiceCreation.
+func (mr *MockServiceOrchestratorMockRecorder) OrchestrateServiceCreation(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrchestrateServiceCreation", reflect.TypeOf((*MockServiceOrchestrator)(nil).OrchestrateServiceCreation), arg0)
+}
+
 // OrchestrateServiceDeletion mocks base method.
 func (m *MockServiceOrchestrator) OrchestrateServiceDeletion(arg0 string) error {
 	m.ctrl.T.Helper()
@@ -45,4 +60,18 @@ func (m *MockServiceOrchestrator) OrchestrateServiceDeletion(arg0 string) error 
 func (mr *MockServiceOrchestratorMockRecorder) OrchestrateServiceDeletion(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrchestrateServiceDeletion", reflect.TypeOf((*MockServiceOrchestrator)(nil).OrchestrateServiceDeletion), arg0)
+}
+
+// OrchestrateServiceUpdate mocks base method.
+func (m *MockServiceOrchestrator) OrchestrateServiceUpdate(arg0 shared.Service, arg1 shared.ServiceSpec) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OrchestrateServiceUpdate", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OrchestrateServiceUpdate indicates an expected call of OrchestrateServiceUpdate.
+func (mr *MockServiceOrchestratorMockRecorder) OrchestrateServiceUpdate(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OrchestrateServiceUpdate", reflect.TypeOf((*MockServiceOrchestrator)(nil).OrchestrateServiceUpdate), arg0, arg1)
 }
