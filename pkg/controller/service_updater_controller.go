@@ -13,7 +13,7 @@ func NewDefaultServiceUpdaterController() ServiceUpdaterController {
 	return &DefaultServiceUpdaterController{}
 }
 
-// To be implemented once starting to work with Docker
+// To be implemented once DNS server is set up
 func (c *DefaultServiceUpdaterController) HandleServiceCreate(kv *mvccpb.KeyValue) {
 	log.Printf("New service created: %s", string(kv.Value))
 }
