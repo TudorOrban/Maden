@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"encoding/json"
+	"errors"
 	"maden/pkg/mocks"
 	"maden/pkg/shared"
 	"net/http"
@@ -44,33 +45,42 @@ func TestServiceHandlerListServicesHandler(t *testing.T) {
 func TestServiceHandlerDeleteServiceHandler(t *testing.T) {
     ctrl := gomock.NewController(t)
     defer ctrl.Finish()
-	
-    mockRepo := mocks.NewMockServiceRepository(ctrl)
-	mockOrchestrator := mocks.NewMockServiceOrchestrator(ctrl)
-    handler := NewServiceHandler(mockRepo, mockOrchestrator)
 
-    serviceName := "test-dep"
+    mockOrchestrator := mocks.NewMockServiceOrchestrator(ctrl)
+    handler := NewServiceHandler(nil, mockOrchestrator)
 
-    // Prepare the request and response recorder
+    serviceName := "example-service"
+
+    // Test case 1: Successful deletion
+    mockOrchestrator.EXPECT().OrchestrateServiceDeletion(serviceName).Return(nil)
+
     req, err := http.NewRequest("DELETE", "/services/"+serviceName, nil)
     if err != nil {
         t.Fatal(err)
     }
     req = mux.SetURLVars(req, map[string]string{"name": serviceName})
-    rr := httptest.NewRecorder()
 
-    // Expectations and call
-    mockRepo.EXPECT().DeleteService(serviceName).Return(nil)
+    rr := httptest.NewRecorder()
 
     handler.deleteServiceHandler(rr, req)
 
     assert.Equal(t, http.StatusNoContent, rr.Code)
 
-    // Test not found error
-    mockRepo.EXPECT().DeleteService(serviceName).Return(&shared.ErrNotFound{})
+    // Test case 2: Service not found
+    mockOrchestrator.EXPECT().OrchestrateServiceDeletion(serviceName).Return(&shared.ErrNotFound{})
+
     rr = httptest.NewRecorder()
 
     handler.deleteServiceHandler(rr, req)
 
     assert.Equal(t, http.StatusNotFound, rr.Code)
+
+    // Test case 3: Other errors
+    mockOrchestrator.EXPECT().OrchestrateServiceDeletion(serviceName).Return(errors.New("internal error"))
+
+    rr = httptest.NewRecorder()
+
+    handler.deleteServiceHandler(rr, req)
+
+    assert.Equal(t, http.StatusInternalServerError, rr.Code)
 }

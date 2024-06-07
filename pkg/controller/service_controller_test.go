@@ -1,102 +1,62 @@
 package controller
 
 import (
-	"maden/pkg/shared"
 	"maden/pkg/mocks"
-	
+	"maden/pkg/shared"
+
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandleIncomingServiceCreateNew(t *testing.T) {
-    // Arrange
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
 
-    mockRepo := mocks.NewMockServiceRepository(ctrl)
-	mockDNSRepo := mocks.NewMockDNSRepository(ctrl)
-	mockIPManager := mocks.NewMockIPManager(ctrl)
-    controller := NewDefaultServiceController(mockRepo, mockDNSRepo, mockIPManager)
+func TestHandleIncomingService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-    serviceSpec := shared.ServiceSpec{Name: "test-service", Selector: map[string]string{"app": "myapp"}, Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}}}
-    expectedService := transformToService(serviceSpec)
+	mockRepo := mocks.NewMockServiceRepository(ctrl)
+	mockOrchestrator := mocks.NewMockServiceOrchestrator(ctrl)
+	serviceController := NewDefaultServiceController(mockRepo, mockOrchestrator)
+	
+	serviceSpec := shared.ServiceSpec{
+		Name: "test-service",
+		Selector: map[string]string{"app": "myapp"},
+		Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}},
+	}
 
-    mockRepo.EXPECT().GetServiceByName("test-service").Return(nil, &shared.ErrNotFound{})
-    mockRepo.EXPECT().CreateService(gomock.Any()).Do(func(service *shared.Service) {
-        assert.Equal(t, expectedService.Name, service.Name)
-        assert.True(t, areMapsEqual(expectedService.Selector, service.Selector))
-        assert.True(t, arePortsEqual(expectedService.Ports, service.Ports))
-    }).Return(nil)
-	mockDNSRepo.EXPECT().RegisterService("test-service", gomock.Any()).Return(nil)
-	mockIPManager.EXPECT().AssignIP().Return(gomock.Any().String(), nil)
 
-    // Act
-    err := controller.HandleIncomingService(serviceSpec)
+	t.Run("Service Creation", func(t *testing.T) {
+		notFoundErr := &shared.ErrNotFound{Name: serviceSpec.Name, ResourceType: shared.ServiceResource}
+        mockRepo.EXPECT().GetServiceByName(gomock.Eq(serviceSpec.Name)).Return(nil, notFoundErr)
+        mockOrchestrator.EXPECT().OrchestrateServiceCreation(serviceSpec).Return(nil)
 
-    // Assert
-    assert.NoError(t, err)
-}
+		err := serviceController.HandleIncomingService(serviceSpec)
+		assert.NoError(t, err)
+	})
 
-func TestHandleIncomingServiceUpdateExisting(t *testing.T) {
-    // Arrange
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
+	t.Run("Service Update", func(t *testing.T) {
+		existingService := &shared.Service{
+			Name: serviceSpec.Name,
+			Selector: map[string]string{"app": "old"},
+			Ports: []shared.ServicePort{{Port: 80, TargetPort: 8081}},
+		}
+		mockRepo.EXPECT().GetServiceByName(serviceSpec.Name).Return(existingService, nil)
+		mockOrchestrator.EXPECT().OrchestrateServiceUpdate(*existingService, serviceSpec).Return(nil)
 
-    mockRepo := mocks.NewMockServiceRepository(ctrl)
-	mockDNSRepo := mocks.NewMockDNSRepository(ctrl)
-	mockIPManager := mocks.NewMockIPManager(ctrl)
-    controller := NewDefaultServiceController(mockRepo, mockDNSRepo, mockIPManager)
+		err := serviceController.HandleIncomingService(serviceSpec)
+		assert.NoError(t, err)
+	})
 
-    existingService := shared.Service{
-        ID: "123",
-        Name: "test-service",
-        Selector: map[string]string{"app": "oldapp"},
-        Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}},
-    }
-    serviceSpec := shared.ServiceSpec{
-        Name: "test-service",
-        Selector: map[string]string{"app": "newapp"},
-        Ports: []shared.ServicePort{{Port: 80, TargetPort: 9090}},
-    }
+	t.Run("No Update Required", func(t *testing.T) {
+		existingService := &shared.Service{
+			Name: serviceSpec.Name,
+			Selector: serviceSpec.Selector,
+			Ports: serviceSpec.Ports,
+		}
+		mockRepo.EXPECT().GetServiceByName(serviceSpec.Name).Return(existingService, nil)
 
-    mockRepo.EXPECT().GetServiceByName("test-service").Return(&existingService, nil)
-    mockRepo.EXPECT().UpdateService(gomock.Any()).Do(func(service *shared.Service) {
-        assert.Equal(t, "newapp", service.Selector["app"])
-        assert.Equal(t, 9090, service.Ports[0].TargetPort)
-    }).Return(nil)
-	mockDNSRepo.EXPECT().RegisterService("test-service", gomock.Any()).Return(nil)
-
-    // Act
-    err := controller.HandleIncomingService(serviceSpec)
-
-    // Assert
-    assert.NoError(t, err)
-}
-
-func TestHandleIncomingServiceNoOperationNeeded(t *testing.T) {
-    // Arrange
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
-
-    mockRepo := mocks.NewMockServiceRepository(ctrl)
-	mockDNSRepo := mocks.NewMockDNSRepository(ctrl)
-	mockIPManager := mocks.NewMockIPManager(ctrl)
-    controller := NewDefaultServiceController(mockRepo, mockDNSRepo, mockIPManager)
-
-    existingService := shared.Service{
-        ID: "123",
-        Name: "test-service",
-        Selector: map[string]string{"app": "myapp"},
-        Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}},
-    }
-
-    mockRepo.EXPECT().GetServiceByName("test-service").Return(&existingService, nil)
-
-    // Act
-    err := controller.HandleIncomingService(shared.ServiceSpec{Name: "test-service", Selector: map[string]string{"app": "myapp"}, Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}}})
-
-    // Assert
-    assert.NoError(t, err)
+		err := serviceController.HandleIncomingService(serviceSpec)
+		assert.NoError(t, err)
+	})
 }
