@@ -20,7 +20,7 @@ import (
 var getDeploymentsCmd = &cobra.Command{
 	Use: "deployment",
 	Short: "Fetches current Maden deployments",
-	Long: `Fetches the currently active Maden deployments by hitting the API server`,
+	Long: `Fetches and displays the currently active Maden deployments along with their details`,
 	Run: func(cmd *cobra.Command, args []string) {
 		response, err := http.Get("http://localhost:8080/deployments")
 		if err != nil {
@@ -136,11 +136,11 @@ var rolloutCmd = &cobra.Command{
 var rolloutRestartDeploymentCmd = &cobra.Command{
 	Use:   "restart [deploymentName]",
 	Short: "Restarts a Maden deployment",
-	Long: `Restarts a Maden deployment by name. For example:
+	Long: `Restarts a Maden deployment by name, by deleting and recreating all associated pods. For example:
 
 maden rollout restart example-deployment
 
-This command will restart the deployment named 'example-deployment' in the system.`,
+This command will restart the deployment named 'example-deployment'.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		deploymentName := args[0]
@@ -177,7 +177,7 @@ func rolloutRestartDeployment(deploymentName string) error {
 var scaleDeploymentCmd = &cobra.Command{
 	Use:   "scale [deploymentName] [replicas]",
 	Short: "Scales a Maden deployment",
-	Long: `Scales a Maden deployment by name to the specified number of replicas. For example:
+	Long: `Scales a Maden deployment by name to the specified number of replicas, deleting or creating pods as necessary. For example:
 
 maden scale example-deployment 3
 
