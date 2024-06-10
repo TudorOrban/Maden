@@ -17,7 +17,7 @@ import (
 var getPodsCmd = &cobra.Command{
 	Use: "pod",
 	Short: "Fetches current Maden pods",
-	Long: `Fetches the currently active Maden pods by hitting the API server`,
+	Long: `Fetches and displays the current Maden pods and their details`,
 	Run: func(cmd *cobra.Command, args []string) {
 		response, err := http.Get("http://localhost:8080/pods")
 		if err != nil {
@@ -105,7 +105,7 @@ func deletePod(podID string) error {
 var logsCmd = &cobra.Command{
     Use:   "logs [podID] [containerID]",
     Short: "Fetch logs for a specific pod and container",
-    Long:  `Fetches logs for a specific pod and container by ID.`,
+    Long:  `Fetches logs for a specific pod and container by ID. If the pod has only one container, the container ID need not be specified`,
     Args:  cobra.RangeArgs(1, 2),
     Run: func(cmd *cobra.Command, args []string) {
         podID := args[0]
@@ -149,8 +149,8 @@ var execCmd = &cobra.Command{
 	Short: "Execute commands in a container interactively",
 	Long: `Execute commands in a container of a specific pod interactively. For example:
 
-maden exec pod123 container456   # Specific container
-maden exec pod123                 # Default to the only container in the pod if there is only one
+maden exec pod123 container456 
+maden exec pod123      
 
 This command opens an interactive session where commands can be typed and executed within the specified container of pod.`,
 	Args: cobra.RangeArgs(1, 2),
