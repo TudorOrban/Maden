@@ -15,12 +15,12 @@ var filePath string
 var applyCmd = &cobra.Command{
 	Use:   "apply -f [yaml-filepath]",
 	Short: "Apply a manifest to the Maden cluster",
-	Long: `Apply a manifest to the Maden cluster to create or update resources.
+	Long: `Apply a manifest yaml file to the Maden cluster to create or update resources.
 For example:
 
 maden apply -f deployment.yaml
 
-This command will apply the deployment.yaml manifest to the Maden cluster`,
+This command will create deployments and services in the Maden cluster based on the deployment.yaml manifest.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if filePath == "" {
 			fmt.Println("Error: YAML file path must be provided using the -f flag")
