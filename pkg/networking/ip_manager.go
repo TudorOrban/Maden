@@ -9,7 +9,7 @@ type SimpleIPManager struct {
 
 func NewSimpleIPManager() IPManager {
 	return &SimpleIPManager{
-		availableIPs: []string{"192.168.1.100", "192.168.1.101", "192.168.1.102"},
+		availableIPs: []string{"192.168.1.100", "192.168.1.101", "192.168.1.102", "192.168.1.103"},
 		usedIPs:      make(map[string]bool),
 	}
 }
