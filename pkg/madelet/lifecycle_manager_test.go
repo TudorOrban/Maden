@@ -4,10 +4,7 @@ import (
 	"maden/pkg/mocks"
 	"maden/pkg/shared"
 
-	// "bufio"
-	// "context"
 	"errors"
-	// "strings"
 	"testing"
 
 	// "github.com/docker/docker/api/types"
@@ -17,6 +14,7 @@ import (
 
 
 func TestPodLifecycleManagerRunPodSuccess(t *testing.T) {
+ // Arrange
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
