@@ -44,12 +44,12 @@ func (s *PodScheduler) SchedulePod(pod *shared.Pod) error {
 }
 
 func shouldSchedulePod(node *shared.Node, pod *shared.Pod) bool {
-	return node.Status == shared.NodeReady && hasSufficentResources(node, &pod.Resources) &&
+	return node.Status == shared.NodeReady && hasSufficientResources(node, &pod.Resources) &&
 		matchesAffinity(node, pod) && matchesAntiAffinity(node, pod) &&
 		matchesTolerations(node, pod)
 }
 
-func hasSufficentResources(node *shared.Node, req *shared.Resources) bool {
+func hasSufficientResources(node *shared.Node, req *shared.Resources) bool {
 	availableCPU := node.Capacity.CPU - node.Used.CPU
 	availableMemory := node.Capacity.Memory - node.Used.Memory
 	return availableCPU >= req.CPU && availableMemory >= req.Memory
