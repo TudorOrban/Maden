@@ -53,7 +53,7 @@ func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, containe
 
 	pod.Containers[containerIndex].ID = containerID
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
-		log.Printf("Failed to update pod with ContainerID: %v", err)
+		log.Printf("Failed to update the pod with ContainerID: %v", err)
 		return nil
 	}
 
