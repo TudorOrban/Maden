@@ -11,6 +11,7 @@ import (
 	"io"
 )
 
+// Orchestrator of pod-related components
 type DefaultPodOrchestrator struct {
 	Repo etcd.PodRepository
 	Scheduler scheduler.Scheduler
