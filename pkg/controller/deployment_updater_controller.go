@@ -12,6 +12,7 @@ import (
 	"go.etcd.io/etcd/api/v3/mvccpb"
 )
 
+// Component responsible for updating a deployment based on a received configuration file
 type DefaultDeploymentUpdaterController struct {
 	Repo etcd.PodRepository
 	Orchestrator orchestrator.PodOrchestrator
