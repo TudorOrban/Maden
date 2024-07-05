@@ -13,6 +13,7 @@ import (
 )
 
 func TestHandleDeploymentCreate(t *testing.T) {
+    // Arrange
     ctrl := gomock.NewController(t)
     defer ctrl.Finish()
 
@@ -20,7 +21,6 @@ func TestHandleDeploymentCreate(t *testing.T) {
     mockOrch := mocks.NewMockPodOrchestrator(ctrl)
     controller := NewDefaultDeploymentUpdaterController(mockRepo, mockOrch)
 	
-    // Example JSON string with detailed template specifications
     deploymentJSON := `{
         "ID":"dep-1",
         "Name":"test-deployment",
@@ -44,10 +44,9 @@ func TestHandleDeploymentCreate(t *testing.T) {
 
     kv := &mvccpb.KeyValue{Value: []byte(deploymentJSON)}
     var deployment shared.Deployment
-    json.Unmarshal(kv.Value, &deployment) // Assuming unmarshal works correctly for this example
+    json.Unmarshal(kv.Value, &deployment)
 
-    // Set expectation with detailed assertion about the pod properties
-    mockOrch.EXPECT().OrchestratePodCreation(gomock.Any()).Times(deployment.Replicas).DoAndReturn(func(pod *shared.Pod) error {
+    // Expectations mockOrch.EXPECT().OrchestratePodCreation(gomock.Any()).Times(deployment.Replicas).DoAndReturn(func(pod *shared.Pod) error {
         assert.Equal(t, "dep-1", pod.DeploymentID)
         assert.Equal(t, "test-deployment", pod.Name)
         assert.Equal(t, "nginx:latest", pod.Containers[0].Image)
@@ -59,6 +58,7 @@ func TestHandleDeploymentCreate(t *testing.T) {
 }
 
 func TestHandleDeploymentUpdate(t *testing.T) {
+    // Arrange
     ctrl := gomock.NewController(t)
     defer ctrl.Finish()
 
