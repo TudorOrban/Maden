@@ -55,6 +55,9 @@ func shouldRestart(oldPod shared.Pod, newPod shared.Pod) bool {
 	if newPod.Status != shared.PodFailed {
 		return false // Only restart failed pods
 	}
+ if newPod.Status != shared.PodRestarted {
+  return false
+ }
 
 	return true
 }
