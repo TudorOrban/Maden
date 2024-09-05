@@ -13,15 +13,15 @@ import (
 )
 
 func TestHandleDeploymentCreate(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
+	// Arrange
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-    mockRepo := mocks.NewMockPodRepository(ctrl)
-    mockOrch := mocks.NewMockPodOrchestrator(ctrl)
-    controller := NewDefaultDeploymentUpdaterController(mockRepo, mockOrch)
-	
-    // Example JSON string with detailed template specifications
-    deploymentJSON := `{
+	mockRepo := mocks.NewMockPodRepository(ctrl)
+	mockOrch := mocks.NewMockPodOrchestrator(ctrl)
+	controller := NewDefaultDeploymentUpdaterController(mockRepo, mockOrch)
+
+	deploymentJSON := `{
         "ID":"dep-1",
         "Name":"test-deployment",
         "Replicas":3,
@@ -42,31 +42,32 @@ func TestHandleDeploymentCreate(t *testing.T) {
         }
     }`
 
-    kv := &mvccpb.KeyValue{Value: []byte(deploymentJSON)}
-    var deployment shared.Deployment
-    json.Unmarshal(kv.Value, &deployment) // Assuming unmarshal works correctly for this example
+	kv := &mvccpb.KeyValue{Value: []byte(deploymentJSON)}
+	var deployment shared.Deployment
+	json.Unmarshal(kv.Value, &deployment)
 
-    // Set expectation with detailed assertion about the pod properties
-    mockOrch.EXPECT().OrchestratePodCreation(gomock.Any()).Times(deployment.Replicas).DoAndReturn(func(pod *shared.Pod) error {
-        assert.Equal(t, "dep-1", pod.DeploymentID)
-        assert.Equal(t, "test-deployment", pod.Name)
-        assert.Equal(t, "nginx:latest", pod.Containers[0].Image)
-        assert.Equal(t, 80, pod.Containers[0].Ports[0].ContainerPort)
-        return nil
-    })
+	// Expectations
+	mockOrch.EXPECT().OrchestratePodCreation(gomock.Any()).Times(deployment.Replicas).DoAndReturn(func(pod *shared.Pod) error {
+		assert.Equal(t, "dep-1", pod.DeploymentID)
+		assert.Equal(t, "test-deployment", pod.Name)
+		assert.Equal(t, "nginx:latest", pod.Containers[0].Image)
+		assert.Equal(t, 80, pod.Containers[0].Ports[0].ContainerPort)
+		return nil
+	})
 
-    controller.HandleDeploymentCreate(kv)
+	controller.HandleDeploymentCreate(kv)
 }
 
 func TestHandleDeploymentUpdate(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
+	// Arrange
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-    mockRepo := mocks.NewMockPodRepository(ctrl)
-    mockOrch := mocks.NewMockPodOrchestrator(ctrl)
-    controller := NewDefaultDeploymentUpdaterController(mockRepo, mockOrch)
+	mockRepo := mocks.NewMockPodRepository(ctrl)
+	mockOrch := mocks.NewMockPodOrchestrator(ctrl)
+	controller := NewDefaultDeploymentUpdaterController(mockRepo, mockOrch)
 
-    oldDeploymentJSON := `{
+	oldDeploymentJSON := `{
         "ID":"dep-1",
         "Name":"test-deployment",
         "Replicas":2,
@@ -86,7 +87,7 @@ func TestHandleDeploymentUpdate(t *testing.T) {
             }
         }
     }`
-    newDeploymentJSON := `{
+	newDeploymentJSON := `{
         "ID":"dep-1",
         "Name":"test-deployment",
         "Replicas":4,
@@ -107,21 +108,21 @@ func TestHandleDeploymentUpdate(t *testing.T) {
         }
     }`
 
-    oldKv := &mvccpb.KeyValue{Value: []byte(oldDeploymentJSON)}
-    newKv := &mvccpb.KeyValue{Value: []byte(newDeploymentJSON)}
+	oldKv := &mvccpb.KeyValue{Value: []byte(oldDeploymentJSON)}
+	newKv := &mvccpb.KeyValue{Value: []byte(newDeploymentJSON)}
 
-    var oldDeployment, newDeployment shared.Deployment
-    json.Unmarshal(oldKv.Value, &oldDeployment)
-    json.Unmarshal(newKv.Value, &newDeployment)
+	var oldDeployment, newDeployment shared.Deployment
+	json.Unmarshal(oldKv.Value, &oldDeployment)
+	json.Unmarshal(newKv.Value, &newDeployment)
 
-    difference := newDeployment.Replicas - oldDeployment.Replicas
-    mockOrch.EXPECT().OrchestratePodCreation(gomock.Any()).Times(difference).DoAndReturn(func(pod *shared.Pod) error {
-        assert.Equal(t, "dep-1", pod.DeploymentID)
-        assert.Equal(t, "test-deployment", pod.Name)
-        assert.Equal(t, "nginx:latest", pod.Containers[0].Image)
-        assert.Equal(t, 80, pod.Containers[0].Ports[0].ContainerPort)
-        return nil
-    })
+	difference := newDeployment.Replicas - oldDeployment.Replicas
+	mockOrch.EXPECT().OrchestratePodCreation(gomock.Any()).Times(difference).DoAndReturn(func(pod *shared.Pod) error {
+		assert.Equal(t, "dep-1", pod.DeploymentID)
+		assert.Equal(t, "test-deployment", pod.Name)
+		assert.Equal(t, "nginx:latest", pod.Containers[0].Image)
+		assert.Equal(t, 80, pod.Containers[0].Ports[0].ContainerPort)
+		return nil
+	})
 
-    controller.HandleDeploymentUpdate(oldKv, newKv)
+	controller.HandleDeploymentUpdate(oldKv, newKv)
 }

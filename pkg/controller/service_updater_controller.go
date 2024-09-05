@@ -14,6 +14,7 @@ func NewDefaultServiceUpdaterController() ServiceUpdaterController {
 }
 
 // To be implemented once DNS server is set up
+// Edit: already implemented by the orchestrator, will be updated soon
 func (c *DefaultServiceUpdaterController) HandleServiceCreate(kv *mvccpb.KeyValue) {
 	shared.Log.Infof("New service created: %s", string(kv.Value))
 }

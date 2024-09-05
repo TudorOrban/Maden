@@ -18,7 +18,7 @@ import (
 var getServicesCmd = &cobra.Command{
 	Use: "service",
 	Short: "Fetches current Maden services",
-	Long: `Fetches the currently active Maden services by hitting the API server`,
+	Long: `Fetches the currently active Maden services, by calling the API server, and displays them.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		response, err := http.Get("http://localhost:8080/services")
 		if err != nil {

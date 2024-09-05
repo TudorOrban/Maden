@@ -47,6 +47,7 @@ const (
 	PodContainerCreating
 	PodRunning
 	PodFailed
+	PodRestarted
 )
 
 func (p *PodStatus) UnmarshalJSON(data []byte) error {
@@ -65,6 +66,8 @@ func (p *PodStatus) UnmarshalJSON(data []byte) error {
 		*p = PodRunning
 	case "Failed":
 		*p = PodFailed
+	case "Restarted":
+		*p = PodRestarted
 	default:
 		return fmt.Errorf("unknown pod status: %s", s)
 	}
@@ -78,7 +81,6 @@ func (p PodStatus) MarshalJSON() ([]byte, error) {
 func (p PodStatus) String() string {
 	return [...]string{"Pending", "Scheduled", "ContainerCreating", "Running", "Failed"}[p]
 }
-
 
 type ResourceType int
 

@@ -18,7 +18,7 @@ import (
 var getNodesCmd = &cobra.Command{
 	Use: "node",
 	Short: "Fetches current Maden nodes",
-	Long: `Fetches the currently active Maden nodes by hitting the API server`,
+	Long: `Fetches and displays the currently active Maden nodes, along with their details.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		response, err := http.Get("http://localhost:8080/nodes")
 		if err != nil {
@@ -67,11 +67,11 @@ func displayNodes(nodes []shared.Node) {
 var deleteNodeCmd = &cobra.Command{
 	Use: "node [nodeID]",
 	Short: "Deletes a Maden node",
-	Long: `Deletes a Maden node by ID. For example:
+	Long: `Deletes a Maden node using its ID. For example:
 	
 maden delete node 1234
 
-This command will delete the node with ID 1234 from the system`,
+This command will delete the node with ID 1234 from the Maden cluster. It requires extra confirmation as this is a destructive operation, deleting all associated pods (and releasing resources).`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		nodeID := args[0]

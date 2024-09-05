@@ -12,6 +12,7 @@ import (
 
 
 func TestHandleIncomingService(t *testing.T) {
+ // Arrange
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -25,12 +26,12 @@ func TestHandleIncomingService(t *testing.T) {
 		Ports: []shared.ServicePort{{Port: 80, TargetPort: 8080}},
 	}
 
-
 	t.Run("Service Creation", func(t *testing.T) {
 		notFoundErr := &shared.ErrNotFound{Name: serviceSpec.Name, ResourceType: shared.ServiceResource}
         mockRepo.EXPECT().GetServiceByName(gomock.Eq(serviceSpec.Name)).Return(nil, notFoundErr)
         mockOrchestrator.EXPECT().OrchestrateServiceCreation(serviceSpec).Return(nil)
 
+// Act
 		err := serviceController.HandleIncomingService(serviceSpec)
 		assert.NoError(t, err)
 	})
@@ -41,7 +42,8 @@ func TestHandleIncomingService(t *testing.T) {
 			Selector: map[string]string{"app": "old"},
 			Ports: []shared.ServicePort{{Port: 80, TargetPort: 8081}},
 		}
-		mockRepo.EXPECT().GetServiceByName(serviceSpec.Name).Return(existingService, nil)
+	
+// Assert	mockRepo.EXPECT().GetServiceByName(serviceSpec.Name).Return(existingService, nil)
 		mockOrchestrator.EXPECT().OrchestrateServiceUpdate(*existingService, serviceSpec).Return(nil)
 
 		err := serviceController.HandleIncomingService(serviceSpec)
