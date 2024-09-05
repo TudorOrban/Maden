@@ -1,9 +1,10 @@
 package apiserver
 
 import (
-	"fmt"
-	"log"
 	"maden/pkg/controller"
+	"maden/pkg/shared"
+
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,12 +12,12 @@ import (
 )
 
 type Server struct {
-	router *mux.Router
-	PodHandler *PodHandler
-	NodeHandler *NodeHandler
+	router            *mux.Router
+	PodHandler        *PodHandler
+	NodeHandler       *NodeHandler
 	DeploymentHandler *DeploymentHandler
-	ServiceHandler *ServiceHandler
-	ManifestHandler *ManifestHandler
+	ServiceHandler    *ServiceHandler
+	ManifestHandler   *ManifestHandler
 
 	ChangeListener *controller.EtcdChangeListener
 }
@@ -24,19 +25,19 @@ type Server struct {
 func NewServer(
 	podHandler *PodHandler,
 	nodeHandler *NodeHandler,
-	deploymentHandler *DeploymentHandler, 
+	deploymentHandler *DeploymentHandler,
 	serviceHandler *ServiceHandler,
 	manifestHandler *ManifestHandler,
 	changeListener *controller.EtcdChangeListener,
 ) *Server {
 	s := &Server{
-		router: mux.NewRouter(),
-		PodHandler: podHandler,
-		NodeHandler: nodeHandler,
+		router:            mux.NewRouter(),
+		PodHandler:        podHandler,
+		NodeHandler:       nodeHandler,
 		DeploymentHandler: deploymentHandler,
-		ServiceHandler: serviceHandler,
-		ManifestHandler: manifestHandler,
-		ChangeListener: changeListener,
+		ServiceHandler:    serviceHandler,
+		ManifestHandler:   manifestHandler,
+		ChangeListener:    changeListener,
 	}
 	s.routes()
 	return s
@@ -67,17 +68,17 @@ func (s *Server) Start() {
 	go s.ChangeListener.WatchPodStatusChanges()
 
 	server := &http.Server{
-		Addr:    ":8080",
-		Handler: s.router,
-		ReadTimeout: 5 * time.Minute,
+		Addr:         ":8080",
+		Handler:      s.router,
+		ReadTimeout:  5 * time.Minute,
 		WriteTimeout: 5 * time.Minute,
-		IdleTimeout: 1 * time.Minute,
+		IdleTimeout:  1 * time.Minute,
 	}
 
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-        log.Fatalf("Failed to start server: %v", err)
+		shared.Log.Errorf("Failed to start server: %v", err)
 		return
-    }
+	}
 	fmt.Println("Server is running on http://localhost:8080")
 }
 

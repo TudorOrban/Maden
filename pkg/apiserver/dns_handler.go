@@ -2,13 +2,12 @@ package apiserver
 
 import (
 	"maden/pkg/etcd"
+	"maden/pkg/shared"
 
-	"log"
 	"net"
 
 	"github.com/miekg/dns"
 )
-
 
 type DNSHandler struct {
 	Repo etcd.DNSRepository
@@ -27,7 +26,7 @@ func (h *DNSHandler) DNSQueryHandler(w dns.ResponseWriter, r *dns.Msg) {
 		domain := r.Question[0].Name
 		ip, err := h.Repo.ResolveService(domain)
 		if err != nil {
-			log.Printf("Failed to resolve service: %v", err)
+			shared.Log.Errorf("Failed to resolve service: %v", err)
 			w.WriteMsg(&msg)
 			return
 		}
@@ -36,7 +35,7 @@ func (h *DNSHandler) DNSQueryHandler(w dns.ResponseWriter, r *dns.Msg) {
 			Hdr: dns.RR_Header{Name: domain, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60},
 			A:   net.ParseIP(ip),
 		})
-		
+
 	}
 	w.WriteMsg(&msg)
 }

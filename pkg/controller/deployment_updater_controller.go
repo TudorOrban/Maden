@@ -6,14 +6,13 @@ import (
 	"maden/pkg/shared"
 
 	"encoding/json"
-	"log"
 
 	"github.com/google/uuid"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 )
 
 type DefaultDeploymentUpdaterController struct {
-	Repo etcd.PodRepository
+	Repo         etcd.PodRepository
 	Orchestrator orchestrator.PodOrchestrator
 }
 
@@ -26,11 +25,11 @@ func NewDefaultDeploymentUpdaterController(
 
 // Create
 func (c *DefaultDeploymentUpdaterController) HandleDeploymentCreate(kv *mvccpb.KeyValue) {
-	log.Printf("New deployment created: %s", string(kv.Value))
+	shared.Log.Infof("New deployment created: %s", string(kv.Value))
 
 	var deployment shared.Deployment
 	if err := json.Unmarshal(kv.Value, &deployment); err != nil {
-		log.Printf("Failed to unmarshal deployment: %v", err)
+		shared.Log.Errorf("Failed to unmarshal deployment: %v", err)
 		return
 	}
 
@@ -43,7 +42,7 @@ func (c *DefaultDeploymentUpdaterController) createAndSchedulePodsFromDeployment
 	for i := 0; i < maxPods; i++ {
 		pod := getPodFromTemplate(deployment.Template, deployment.Name, deployment.ID)
 		if err := c.Orchestrator.OrchestratePodCreation(pod); err != nil {
-			log.Printf("Failed to create pod: %v", err)
+			shared.Log.Errorf("Failed to create pod: %v", err)
 			return
 		}
 	}
@@ -52,16 +51,16 @@ func (c *DefaultDeploymentUpdaterController) createAndSchedulePodsFromDeployment
 func getPodFromTemplate(template shared.PodTemplate, podName string, deploymentID string) *shared.Pod {
 	podID := podName + "-" + uuid.New().String()
 	pod := &shared.Pod{
-		ID: podID,
-		Name: podName,
-		DeploymentID: deploymentID,
-		Status: shared.PodPending,
-		NodeID: "",
-		Containers: template.Spec.Containers,
-		Resources: template.Spec.Resources,
-		Affinity: template.Spec.Affinity,
-		AntiAffinity: template.Spec.AntiAffinity,
-		Tolerations: template.Spec.Tolerations,
+		ID:            podID,
+		Name:          podName,
+		DeploymentID:  deploymentID,
+		Status:        shared.PodPending,
+		NodeID:        "",
+		Containers:    template.Spec.Containers,
+		Resources:     template.Spec.Resources,
+		Affinity:      template.Spec.Affinity,
+		AntiAffinity:  template.Spec.AntiAffinity,
+		Tolerations:   template.Spec.Tolerations,
 		RestartPolicy: template.Spec.RestartPolicy,
 	}
 	return pod
@@ -69,17 +68,17 @@ func getPodFromTemplate(template shared.PodTemplate, podName string, deploymentI
 
 // Update
 func (c *DefaultDeploymentUpdaterController) HandleDeploymentUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
-	log.Printf("Deployment updated: %s, %v", string(oldKv.Value), string(newKv.Value))
-	
+	shared.Log.Infof("Deployment updated: %s, %v", string(oldKv.Value), string(newKv.Value))
+
 	var oldDeployment shared.Deployment
 	if err := json.Unmarshal(oldKv.Value, &oldDeployment); err != nil {
-		log.Printf("Failed to unmarshal old deployment: %v", err)
+		shared.Log.Errorf("Failed to unmarshal old deployment: %v", err)
 		return
 	}
 
 	var newDeployment shared.Deployment
 	if err := json.Unmarshal(newKv.Value, &newDeployment); err != nil {
-		log.Printf("Failed to unmarshal new deployment: %v", err)
+		shared.Log.Errorf("Failed to unmarshal new deployment: %v", err)
 		return
 	}
 
@@ -107,11 +106,11 @@ func (c *DefaultDeploymentUpdaterController) handleDeploymentTemplateUpdate(oldD
 
 // Delete
 func (c *DefaultDeploymentUpdaterController) HandleDeploymentDelete(kv *mvccpb.KeyValue) {
-	log.Printf("Deployment deleted: %s", string(kv.Value))
+	shared.Log.Infof("Deployment deleted: %s", string(kv.Value))
 
 	var deployment shared.Deployment
 	if err := json.Unmarshal(kv.Value, &deployment); err != nil {
-		log.Printf("Failed to unmarshal deployment: %v", err)
+		shared.Log.Errorf("Failed to unmarshal deployment: %v", err)
 		return
 	}
 
@@ -121,7 +120,7 @@ func (c *DefaultDeploymentUpdaterController) HandleDeploymentDelete(kv *mvccpb.K
 func (c *DefaultDeploymentUpdaterController) deletePodsByDeploymentID(deploymentID string, limit int) {
 	pods, err := c.Repo.GetPodsByDeploymentID(deploymentID)
 	if err != nil {
-		log.Printf("Failed to get pods by deployment ID: %v", err)
+		shared.Log.Errorf("Failed to get pods by deployment ID: %v", err)
 		return
 	}
 
@@ -129,7 +128,7 @@ func (c *DefaultDeploymentUpdaterController) deletePodsByDeploymentID(deployment
 	for _, pod := range pods[:maxPods] {
 		err := c.Orchestrator.OrchestratePodDeletion(&pod)
 		if err != nil {
-			log.Printf("Failed to delete pod %s: %v", pod.ID, err)
+			shared.Log.Errorf("Failed to delete pod %s: %v", pod.ID, err)
 			return
 		}
 	}

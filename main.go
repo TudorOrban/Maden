@@ -2,11 +2,10 @@ package main
 
 import (
 	"maden/pkg/apiserver"
+	"maden/pkg/shared"
+
 	"sync"
-
-	"log"
 )
-
 
 func main() {
 	container := buildContainer()
@@ -18,10 +17,10 @@ func main() {
 		defer wg.Done()
 
 		err := container.Invoke(func(dnsServer *apiserver.DNSServer) {
-			dnsServer.StartDNSServer();
+			dnsServer.StartDNSServer()
 		})
 		if err != nil {
-			log.Fatalf("Failed to invoke DI container: %v", err)
+			shared.Log.Errorf("Failed to invoke DI container: %v", err)
 		}
 	}()
 
@@ -30,12 +29,12 @@ func main() {
 		defer wg.Done()
 
 		err := container.Invoke(func(server *apiserver.Server) {
-			server.Start();
+			server.Start()
 		})
 		if err != nil {
-			log.Fatalf("Failed to invoke DI container: %v", err)
+			shared.Log.Errorf("Failed to invoke DI container: %v", err)
 		}
 	}()
-	
+
 	wg.Wait()
 }

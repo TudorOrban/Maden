@@ -1,7 +1,8 @@
 package controller
 
 import (
-	"log"
+	"maden/pkg/shared"
+
 	"context"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -26,7 +27,7 @@ func NewEtcdChangeListener(
 func (l *EtcdChangeListener) WatchDeployments() {	
 	ctx := context.Background()
 	rch := l.client.Watch(ctx, "deployments/", clientv3.WithPrefix(), clientv3.WithPrevKV())
-	log.Println("Watching deployments...")
+	shared.Log.Infof("Watching deployments...")
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
@@ -47,7 +48,7 @@ func (l *EtcdChangeListener) WatchDeployments() {
 func (l *EtcdChangeListener) WatchServices() {
 	ctx := context.Background()
 	rch := l.client.Watch(ctx, "services/", clientv3.WithPrefix(), clientv3.WithPrevKV())
-	log.Println("Watching services...")
+	shared.Log.Infof("Watching services...")
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
@@ -68,7 +69,7 @@ func (l *EtcdChangeListener) WatchServices() {
 func (l *EtcdChangeListener) WatchPodStatusChanges() {
 	ctx := context.Background()
 	rch := l.client.Watch(ctx, "pods/", clientv3.WithPrefix(), clientv3.WithPrevKV())
-	log.Println("Watching pods...")
+	shared.Log.Infof("Watching pods...")
 
 	for wresp := range rch {
 		for _, ev := range wresp.Events {

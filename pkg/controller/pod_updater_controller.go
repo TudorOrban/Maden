@@ -5,7 +5,6 @@ import (
 	"maden/pkg/shared"
 
 	"encoding/json"
-	"log"
 
 	"go.etcd.io/etcd/api/v3/mvccpb"
 )
@@ -20,17 +19,16 @@ func NewDefaultPodUpdaterController(
 	return &DefaultPodUpdaterController{PodLifecycleManager: podLifecycleManager}
 }
 
-
-func (c *DefaultPodUpdaterController) HandlePodUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {	
+func (c *DefaultPodUpdaterController) HandlePodUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
 	var oldPod shared.Pod
 	if err := json.Unmarshal(oldKv.Value, &oldPod); err != nil {
-		log.Printf("Failed to unmarshal old pod: %v", err)
+		shared.Log.Errorf("Failed to unmarshal old pod: %v", err)
 		return
 	}
 
 	var newPod shared.Pod
 	if err := json.Unmarshal(newKv.Value, &newPod); err != nil {
-		log.Printf("Failed to unmarshal new pod: %v", err)
+		shared.Log.Errorf("Failed to unmarshal new pod: %v", err)
 		return
 	}
 
@@ -39,8 +37,8 @@ func (c *DefaultPodUpdaterController) HandlePodUpdate(oldKv *mvccpb.KeyValue, ne
 		return
 	}
 
-	log.Printf("Restarting pod: %s", newPod.ID)
-	c.PodLifecycleManager.RunPod(&newPod);
+	shared.Log.Infof("Restarting pod: %s", newPod.ID)
+	c.PodLifecycleManager.RunPod(&newPod)
 }
 
 func shouldRestart(oldPod shared.Pod, newPod shared.Pod) bool {

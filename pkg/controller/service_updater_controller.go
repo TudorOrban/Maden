@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"log"
+	"maden/pkg/shared"
 
 	"go.etcd.io/etcd/api/v3/mvccpb"
 )
@@ -15,13 +15,13 @@ func NewDefaultServiceUpdaterController() ServiceUpdaterController {
 
 // To be implemented once DNS server is set up
 func (c *DefaultServiceUpdaterController) HandleServiceCreate(kv *mvccpb.KeyValue) {
-	log.Printf("New service created: %s", string(kv.Value))
+	shared.Log.Infof("New service created: %s", string(kv.Value))
 }
 
 func (c *DefaultServiceUpdaterController) HandleServiceUpdate(prevKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue) {
-	log.Printf("Service updated: %s, %v", string(prevKv.Value), string(newKv.Value))
+	shared.Log.Infof("Service updated: %s, %v", string(prevKv.Value), string(newKv.Value))
 }
 
 func (c *DefaultServiceUpdaterController) HandleServiceDelete(prevKv *mvccpb.KeyValue) {
-	log.Printf("Service deleted: %s", string(prevKv.Value))
+	shared.Log.Infof("Service deleted: %s", string(prevKv.Value))
 }

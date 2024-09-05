@@ -1,17 +1,14 @@
 package orchestrator
 
 import (
-	"fmt"
 	"maden/pkg/etcd"
 	"maden/pkg/networking"
 	"maden/pkg/shared"
-
-	"log"
 )
 
 type DefaultServiceOrchestrator struct {
-	Repo etcd.ServiceRepository
-	DNSRepo etcd.DNSRepository
+	Repo      etcd.ServiceRepository
+	DNSRepo   etcd.DNSRepository
 	IPManager networking.IPManager
 }
 
@@ -46,16 +43,16 @@ func (o *DefaultServiceOrchestrator) OrchestrateServiceCreation(serviceSpec shar
 func transformToService(spec shared.ServiceSpec) shared.Service {
 	id := shared.GenerateRandomString(10)
 	service := shared.Service{
-		ID: id,
-		Name: spec.Name,
+		ID:       id,
+		Name:     spec.Name,
 		Selector: spec.Selector,
-		Ports: spec.Ports,
+		Ports:    spec.Ports,
 	}
 	return service
 }
 
 func (o *DefaultServiceOrchestrator) OrchestrateServiceUpdate(existingService shared.Service, serviceSpec shared.ServiceSpec) error {
-	fmt.Println("Updating service")
+	shared.Log.Infof("Updating service...")
 	updatedService := updateExistingService(serviceSpec, &existingService)
 	err := o.Repo.UpdateService(&updatedService)
 	if err != nil {
@@ -78,11 +75,11 @@ func (o *DefaultServiceOrchestrator) OrchestrateServiceDeletion(serviceName stri
 	}
 
 	if err := o.DNSRepo.DeregisterService(service.Name); err != nil {
-		log.Printf("failed to deregister service %s: %v", service.Name, err)
+		shared.Log.Errorf("failed to deregister service %s: %v", service.Name, err)
 	}
 
 	if err := o.IPManager.ReleaseIP(service.IP); err != nil {
-		log.Printf("failed to release IP %s: %v", service.IP, err)
+		shared.Log.Errorf("failed to release IP %s: %v", service.IP, err)
 	}
 
 	return o.Repo.DeleteService(service.Name)

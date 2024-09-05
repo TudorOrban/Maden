@@ -7,8 +7,6 @@ import (
 	"maden/pkg/etcd"
 	"maden/pkg/shared"
 
-	"log"
-
 	"github.com/docker/docker/api/types"
 )
 
@@ -19,11 +17,10 @@ type PodLifecycleManager struct {
 
 func NewPodLifecycleManager(
 	runtime ContainerRuntimeInterface,
-	podRepo etcd.PodRepository,	
+	podRepo etcd.PodRepository,
 ) PodManager {
 	return &PodLifecycleManager{Runtime: runtime, PodRepo: podRepo}
 }
-
 
 func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 	for containerIndex := range pod.Containers {
@@ -39,21 +36,21 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, containerIndex int) *string {
 	pod.Status = shared.PodContainerCreating
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
-		log.Printf("Failed to update pod status: %v", err)
+		shared.Log.Errorf("Failed to update pod status: %v", err)
 		return nil
 	}
-	
+
 	containerID, err := p.Runtime.CreateContainer(pod.Containers[containerIndex].Image)
 	if err != nil {
-		log.Printf("Failed to create container: %v", err)
+		shared.Log.Errorf("Failed to create container: %v", err)
 		pod.Status = shared.PodFailed
-		_ = p.PodRepo.UpdatePod(pod)	
+		_ = p.PodRepo.UpdatePod(pod)
 		return nil
 	}
 
 	pod.Containers[containerIndex].ID = containerID
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
-		log.Printf("Failed to update pod with ContainerID: %v", err)
+		shared.Log.Errorf("Failed to update pod with ContainerID: %v", err)
 		return nil
 	}
 
@@ -63,13 +60,13 @@ func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, containe
 func (p *PodLifecycleManager) attemptContainerStart(containerID string, pod *shared.Pod) {
 	if err := p.Runtime.StartContainer(containerID); err != nil {
 		pod.Status = shared.PodFailed
-		_ = p.PodRepo.UpdatePod(pod) 
-		log.Printf("Failed to start container: %v", err)
+		_ = p.PodRepo.UpdatePod(pod)
+		shared.Log.Errorf("Failed to start container: %v", err)
 		return
 	}
 	pod.Status = shared.PodRunning
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
-		log.Printf("Failed to update pod status: %v", err)
+		shared.Log.Errorf("Failed to update pod status: %v", err)
 		return
 	}
 }
@@ -78,7 +75,7 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 	for _, container := range pod.Containers {
 		containerStatus, err := p.Runtime.GetContainerStatus(container.ID)
 		if err != nil {
-			log.Printf("Failed to get container status: %v", err)
+			shared.Log.Errorf("Failed to get container status: %v", err)
 			continue
 		}
 		if containerStatus != shared.Running {
@@ -86,11 +83,11 @@ func (p *PodLifecycleManager) StopPod(pod *shared.Pod) error {
 		}
 
 		if err := p.Runtime.StopContainer(container.ID); err != nil {
-			log.Printf("Failed to stop container: %v", err)
+			shared.Log.Errorf("Failed to stop container: %v", err)
 		}
 
 		if err := p.Runtime.DeleteContainer(container.ID); err != nil {
-			log.Printf("Failed to remove container: %v", err)
+			shared.Log.Errorf("Failed to remove container: %v", err)
 		}
 	}
 	return nil
@@ -102,31 +99,33 @@ func (p *PodLifecycleManager) GetContainerLogs(ctx context.Context, containerID 
 
 func (p *PodLifecycleManager) ExecuteCommandInContainer(ctx context.Context, containerID string, command string) (string, error) {
 	execConfig := types.ExecConfig{
-		Cmd: []string{"/bin/sh", "-c", command},
+		Cmd:          []string{"/bin/sh", "-c", command},
 		AttachStdout: true,
 		AttachStderr: true,
-		Tty: true,
+		Tty:          true,
 	}
 
 	execID, err := p.Runtime.ExecCommandCreate(ctx, containerID, execConfig)
 	if err != nil {
+		shared.Log.Errorf("Failed to create exec command: %v", err)
 		return "", err
 	}
 
 	attachOptions := types.ExecStartCheck{Tty: execConfig.Tty}
 	execAttach, err := p.Runtime.ExecCommandAttach(ctx, execID, attachOptions, execConfig.Tty)
 	if err != nil {
+		shared.Log.Errorf("Failed to attach to exec command: %v", err)
 		return "", err
 	}
-	
-    if execAttach == nil {
-        return "", fmt.Errorf("execAttach is nil after ExecCommandAttach")
-    }
-    defer execAttach.Close()
-	
+
+	if execAttach == nil {
+		return "", fmt.Errorf("execAttach is nil after ExecCommandAttach")
+	}
+	defer execAttach.Close()
+
 	output, err := io.ReadAll(execAttach.Reader)
 	if err != nil {
-		log.Printf("Failed to read exec output: %v", err)
+		shared.Log.Errorf("Failed to read exec output: %v", err)
 		return "", err
 	}
 

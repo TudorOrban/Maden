@@ -2,7 +2,7 @@ package etcd
 
 import (
 	"context"
-	"log"
+	"maden/pkg/shared"
 	"sync"
 	"time"
 
@@ -26,7 +26,7 @@ func NewClientv3() *clientv3.Client {
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
-		log.Fatalf("Failed to connect to etcd: %v", err)
+		shared.Log.Errorf("Failed to connect to etcd: %v", err)
 	}
 	return client
 }
@@ -41,7 +41,7 @@ func ProvideEtcdClient() *clientv3.Client {
             DialTimeout: 5 * time.Second,
         })
         if err != nil {
-            log.Fatalf("Failed to connect to etcd: %v", err)
+            shared.Log.Errorf("Failed to connect to etcd: %v", err)
         }
         etcdClientInstance = client
     })
