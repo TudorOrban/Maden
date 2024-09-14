@@ -229,11 +229,6 @@ func scaleDeployment(deploymentName string, replicas int) error {
 }
 
 func init() {
-	rolloutCmd.AddCommand(scaleDeploymentCmd)
-}
-
-
-func init() {
 	getCmd.AddCommand(getDeploymentsCmd)
 	deleteCmd.AddCommand(deleteDeploymentCmd)
 	rootCmd.AddCommand(rolloutCmd)
