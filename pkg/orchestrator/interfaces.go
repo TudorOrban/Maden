@@ -18,3 +18,15 @@ type ServiceOrchestrator interface {
 	OrchestrateServiceUpdate(existingService shared.Service, serviceSpec shared.ServiceSpec) error
 	OrchestrateServiceDeletion(serviceName string) error
 }
+
+type PersistentVolumeOrchestrator interface {
+	OrchestratePersistentVolumeCreation(volumeSpec *shared.PersistentVolumeSpec) error
+	OrchestratePersistentVolumeUpdate(existingVolume *shared.PersistentVolume, volumeSpec *shared.PersistentVolumeSpec) error
+	OrchestratePersistentVolumeDeletion(volumeName string) error
+}
+
+type PersistentVolumeClaimOrchestrator interface {
+	OrchestratePersistentVolumeClaimCreation(volumeClaimSpec *shared.PersistentVolumeClaimSpec) error
+	OrchestratePersistentVolumeClaimUpdate(existingVolumeClaim *shared.PersistentVolumeClaim, volumeClaimSpec *shared.PersistentVolumeClaimSpec) error
+	OrchestratePersistentVolumeClaimDeletion(volumeClaimName string) error
+}

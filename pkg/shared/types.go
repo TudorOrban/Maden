@@ -113,6 +113,7 @@ type ServicePort struct {
 
 // Persistent Volumes
 type PersistentVolumeSpec struct {
+	Name string `json:"name" yaml:"name"`
     Capacity map[string]string `json:"capacity" yaml:"capacity"`
     AccessModes []string `json:"accessModes" yaml:"accessModes"`
     PersistentVolumeReclaimPolicy string `json:"reclaimPolicy" yaml:"reclaimPolicy"`
@@ -122,11 +123,16 @@ type PersistentVolumeSpec struct {
 
 type PersistentVolume struct {
 	ID string `json:"id" yaml:"id"`
-    Metadata Metadata `json:"metadata" yaml:"metadata"`
-    Spec PersistentVolumeSpec `json:"spec" yaml:"spec"`
+	Name string `json:"name" yaml:"name"`
+    Capacity map[string]string `json:"capacity" yaml:"capacity"`
+    AccessModes []string `json:"accessModes" yaml:"accessModes"`
+    PersistentVolumeReclaimPolicy string `json:"reclaimPolicy" yaml:"reclaimPolicy"`
+    StorageClassName string `json:"storageClassName" yaml:"storageClassName"`
+    MountOptions []string `json:"mountOptions" yaml:"mountOptions"`
 }
 
 type PersistentVolumeClaimSpec struct {
+	Name string `json:"name" yaml:"name"`
     AccessModes []string `json:"accessModes" yaml:"accessModes"`
     Resources Resources `json:"resources" yaml:"resources"`
     VolumeName string `json:"volumeName" yaml:"volumeName"`
@@ -134,8 +140,10 @@ type PersistentVolumeClaimSpec struct {
 
 type PersistentVolumeClaim struct {
 	ID string `json:"id" yaml:"id"`
-    Metadata Metadata `json:"metadata" yaml:"metadata"`
-    Spec PersistentVolumeClaimSpec `json:"spec" yaml:"spec"`
+	Name string `json:"name" yaml:"name"`
+    AccessModes []string `json:"accessModes" yaml:"accessModes"`
+    Resources Resources `json:"resources" yaml:"resources"`
+    VolumeName string `json:"volumeName" yaml:"volumeName"`
 }
 
 // Other 
