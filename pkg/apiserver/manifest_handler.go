@@ -4,8 +4,8 @@ import (
 	"maden/pkg/controller"
 	"maden/pkg/shared"
 
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,7 +25,6 @@ func NewManifestHandler(
 	return &ManifestHandler{DController: dController, SController: sController}
 }
 
-
 func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -43,34 +42,50 @@ func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Re
 			if err == io.EOF {
 				break
 			}
-			http.Error(w, "Failed to parse YAML: " + err.Error(), http.StatusBadRequest)
+			http.Error(w, "Failed to parse YAML: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		switch resource.Kind {
-		case "Deployment":
-			err := h.handleDeployment(resource)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		case "Service":
-			err := h.handleService(resource)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		default:
-			errorMsg := fmt.Sprintf("Unsupported kind: %s", resource.Kind)
-            http.Error(w, errorMsg, http.StatusBadRequest)
-            return
+		err = h.handleIncomingResource(resource)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (h *ManifestHandler) handleDeployment(resource shared.MadenResource) error {
+func (h *ManifestHandler) handleIncomingResource(resource shared.MadenResource) error {
+	switch resource.Kind {
+	case "Deployment":
+		err := h.handleIncomingDeployment(resource)
+		if err != nil {
+			return err
+		}
+	case "Service":
+		err := h.handleIncomingService(resource)
+		if err != nil {
+			return err
+		}
+	case "PersistentVolume":
+		err := h.handleIncomingPersistentVolume(resource)
+		if err != nil {
+			return err
+		}
+	case "PersistentVolumeClaim":
+		err := h.handleIncomingPersistentVolumeClaim(resource)
+		if err != nil {
+			return err
+		}
+	default:
+		errorMsg := fmt.Sprintf("Unsupported kind: %s", resource.Kind)
+		return fmt.Errorf(errorMsg)
+	}
+
+	return nil
+}
+
+func (h *ManifestHandler) handleIncomingDeployment(resource shared.MadenResource) error {
 	var deploymentSpec shared.DeploymentSpec
 	specBytes, err := json.Marshal(resource.Spec)
 	if err != nil {
@@ -89,7 +104,7 @@ func (h *ManifestHandler) handleDeployment(resource shared.MadenResource) error 
 	return h.DController.HandleIncomingDeployment(deploymentSpec)
 }
 
-func (h *ManifestHandler) handleService(resource shared.MadenResource) error {
+func (h *ManifestHandler) handleIncomingService(resource shared.MadenResource) error {
 	var serviceSpec shared.ServiceSpec
 	specBytes, err := json.Marshal(resource.Spec)
 	if err != nil {
@@ -106,4 +121,36 @@ func (h *ManifestHandler) handleService(resource shared.MadenResource) error {
 	fmt.Printf("Handling Service: %+v\n", serviceSpec)
 
 	return h.SController.HandleIncomingService(serviceSpec)
+}
+
+func (h *ManifestHandler) handleIncomingPersistentVolume(resource shared.MadenResource) error {
+	var pvSpec shared.PersistentVolumeSpec
+	specBytes, err := json.Marshal(resource.Spec)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(specBytes, &pvSpec)
+	if err != nil {
+		return err
+	}
+
+	// Implement logic to handle the persistent volume lifecycle
+	return nil
+}
+
+func (h *ManifestHandler) handleIncomingPersistentVolumeClaim(resource shared.MadenResource) error {
+	var pvcSpec shared.PersistentVolumeClaimSpec
+	specBytes, err := json.Marshal(resource.Spec)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(specBytes, &pvcSpec)
+	if err != nil {
+		return err
+	}
+
+	// Implement logic to bind PVC to PV and manage the lifecycle
+	return nil
 }

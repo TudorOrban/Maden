@@ -15,7 +15,7 @@ Maden will be packaged soon. For now, you can use it by following these steps:
 2. Run `docker build -t maden:latest .` and `docker-compose up` to start the server.
 3. Run `cd cmd\madencli` and `go build -o madencli.exe` to build the CLI tool.
 4. Now you can interact with Maden via commands, for example:
-`./madencli.exe apply -f \path-to-your-roout\example_deployments\example_deployment.yaml`
+`./madencli.exe apply -f \path-to-your-root-folder\example_deployments\example_deployment.yaml`
 This applies the example deployment from the example_deployments directory. Run `./madencli.exe -h` to see all available commands.
 
 ### Status

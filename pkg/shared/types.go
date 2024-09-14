@@ -111,6 +111,31 @@ type ServicePort struct {
 	TargetPort int `json:"targetPort" yaml:"targetPort"`
 }
 
+// Persistent Volumes
+type PersistentVolumeSpec struct {
+    Capacity map[string]string `json:"capacity" yaml:"capacity"`
+    AccessModes []string `json:"accessModes" yaml:"accessModes"`
+    PersistentVolumeReclaimPolicy string `json:"reclaimPolicy" yaml:"reclaimPolicy"`
+    StorageClassName string `json:"storageClassName" yaml:"storageClassName"`
+    MountOptions []string `json:"mountOptions" yaml:"mountOptions"`
+}
+
+type PersistentVolume struct {
+    Metadata Metadata `json:"metadata" yaml:"metadata"`
+    Spec PersistentVolumeSpec `json:"spec" yaml:"spec"`
+}
+
+type PersistentVolumeClaimSpec struct {
+    AccessModes []string `json:"accessModes" yaml:"accessModes"`
+    Resources Resources `json:"resources" yaml:"resources"`
+    VolumeName string `json:"volumeName" yaml:"volumeName"`
+}
+
+type PersistentVolumeClaim struct {
+    Metadata Metadata `json:"metadata" yaml:"metadata"`
+    Spec PersistentVolumeClaimSpec `json:"spec" yaml:"spec"`
+}
+
 // Other 
 type ScaleRequest struct {
 	Replicas int `json:"replicas"`
