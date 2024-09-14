@@ -121,6 +121,7 @@ type PersistentVolumeSpec struct {
 }
 
 type PersistentVolume struct {
+	ID string `json:"id" yaml:"id"`
     Metadata Metadata `json:"metadata" yaml:"metadata"`
     Spec PersistentVolumeSpec `json:"spec" yaml:"spec"`
 }
@@ -132,6 +133,7 @@ type PersistentVolumeClaimSpec struct {
 }
 
 type PersistentVolumeClaim struct {
+	ID string `json:"id" yaml:"id"`
     Metadata Metadata `json:"metadata" yaml:"metadata"`
     Spec PersistentVolumeClaimSpec `json:"spec" yaml:"spec"`
 }

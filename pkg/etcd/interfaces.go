@@ -37,6 +37,22 @@ type ServiceRepository interface {
 	DeleteService(serviceName string) error
 }
 
+type PersistentVolumeRepository interface {
+	ListPersistentVolumes() ([]shared.PersistentVolume, error)
+	GetPersistentVolumeByID(persistentVolumeID string) (*shared.PersistentVolume, error)
+	CreatePersistentVolume(volume *shared.PersistentVolume) error
+	UpdatePersistentVolume(volume *shared.PersistentVolume) error
+	DeletePersistentVolume(volumeName string) error
+}
+
+type PersistentVolumeClaimRepository interface {
+	ListPersistentVolumeClaims() ([]shared.PersistentVolumeClaim, error)
+	GetPersistentVolumeClaimByID(persistentVolumeClaimID string) (*shared.PersistentVolumeClaim, error)
+	CreatePersistentVolumeClaim(volumeClaim *shared.PersistentVolumeClaim) error
+	UpdatePersistentVolumeClaim(volumeClaim *shared.PersistentVolumeClaim) error
+	DeletePersistentVolumeClaim(volumeClaimName string) error
+}
+
 type Transactioner interface {
 	PerformTransaction(ctx context.Context, key string, value string, resourceType shared.ResourceType) error
 }

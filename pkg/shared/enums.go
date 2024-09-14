@@ -89,11 +89,13 @@ const (
 	NodeResource
 	DeploymentResource
 	ServiceResource
+	PersistentVolumeResource
+	PersistentVolumeClaimResource
 	DNSResource
 )
 
 func (r ResourceType) String() string {
-	return [...]string{"Pod", "Node", "Deployment", "Service", "DNSResource"}[r]
+	return [...]string{"Pod", "Node", "Deployment", "Service", "PersistentVolumeResource", "PersistentVolumeClaimResource", "DNSResource"}[r]
 }
 
 type RestartPolicy int
