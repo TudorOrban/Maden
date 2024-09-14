@@ -29,3 +29,21 @@ spec:
       port: 81
       targetPort: 82
   type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolume
+spec:
+  name: example-pv
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: example-sc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+spec:
+  name: example-pvc
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

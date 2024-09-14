@@ -2,7 +2,7 @@
 
 **Maden** is a minimal, lightweight container orchestration tool. It can be used for basic local development. The architecture closely mirrors that of Kubernetes, with:
 - pods able to run multiple (Docker) containers; they support pod replicas, affinities/anti-affinities, tolerations, restart policies
-- deployments and services; they can be configured through yaml manifests as usual
+- deployments and services; they can be configured through yaml manifests as usual, along with persistent volumes and claims
 - schedulers determining how to schedule pods based on available resources (only virtual for now), affinities etc.
 - controllers ensuring the state of the system reflects the defined configuration
 - an etcd data source storing pods, nodes etc.

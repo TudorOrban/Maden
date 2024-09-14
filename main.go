@@ -12,17 +12,18 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	// DNS Server currently causes concurrency issues, so it is disabled for now
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
 
-		err := container.Invoke(func(dnsServer *apiserver.DNSServer) {
-			dnsServer.StartDNSServer()
-		})
-		if err != nil {
-			shared.Log.Errorf("Failed to invoke DI container: %v", err)
-		}
-	}()
+	// 	err := container.Invoke(func(dnsServer *apiserver.DNSServer) {
+	// 		dnsServer.StartDNSServer()
+	// 	})
+	// 	if err != nil {
+	// 		shared.Log.Errorf("Failed to invoke DI container: %v", err)
+	// 	}
+	// }()
 
 	wg.Add(1)
 	go func() {

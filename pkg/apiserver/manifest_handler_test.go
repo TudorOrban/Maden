@@ -20,7 +20,8 @@ func TestManifestHandlerHandleMadenResources(t *testing.T) {
 	mockDeploymentController := mocks.NewMockDeploymentController(ctrl)
 	mockServiceController := mocks.NewMockServiceController(ctrl)
 	mockPersistentVolumeController := mocks.NewMockPersistentVolumeController(ctrl)
-	handler := NewManifestHandler(mockDeploymentController, mockServiceController, mockPersistentVolumeController)
+	mockPersistentVolumeClaimController := mocks.NewMockPersistentVolumeClaimController(ctrl)
+	handler := NewManifestHandler(mockDeploymentController, mockServiceController, mockPersistentVolumeController, mockPersistentVolumeClaimController)
 
 	deploymentYAML := `
 kind: Deployment

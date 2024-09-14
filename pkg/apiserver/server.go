@@ -17,6 +17,8 @@ type Server struct {
 	NodeHandler       *NodeHandler
 	DeploymentHandler *DeploymentHandler
 	ServiceHandler    *ServiceHandler
+	PersistentVolumeHandler *PersistentVolumeHandler
+	PermanentVolumeClaimHandler *PersistentVolumeClaimHandler
 	ManifestHandler   *ManifestHandler
 
 	ChangeListener *controller.EtcdChangeListener
@@ -27,6 +29,8 @@ func NewServer(
 	nodeHandler *NodeHandler,
 	deploymentHandler *DeploymentHandler,
 	serviceHandler *ServiceHandler,
+	persistentVolumeHandler *PersistentVolumeHandler,
+	persistentVolumeClaimHandler *PersistentVolumeClaimHandler,
 	manifestHandler *ManifestHandler,
 	changeListener *controller.EtcdChangeListener,
 ) *Server {
@@ -36,6 +40,8 @@ func NewServer(
 		NodeHandler:       nodeHandler,
 		DeploymentHandler: deploymentHandler,
 		ServiceHandler:    serviceHandler,
+		PersistentVolumeHandler: persistentVolumeHandler,
+		PermanentVolumeClaimHandler: persistentVolumeClaimHandler,
 		ManifestHandler:   manifestHandler,
 		ChangeListener:    changeListener,
 	}
@@ -59,6 +65,10 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/deployments/{name}/scale", s.DeploymentHandler.scaleDeploymentHandler).Methods("POST")
 	s.router.HandleFunc("/services", s.ServiceHandler.listServicesHandler).Methods("GET")
 	s.router.HandleFunc("/services/{name}", s.ServiceHandler.deleteServiceHandler).Methods("DELETE")
+	s.router.HandleFunc("/persistent-volumes", s.PersistentVolumeHandler.listPersistentVolumesHandler).Methods("GET")
+	s.router.HandleFunc("/persistent-volumes/{id}", s.PersistentVolumeHandler.deletePersistentVolumeHandler).Methods("DELETE")
+	s.router.HandleFunc("/persistent-volume-claims", s.PermanentVolumeClaimHandler.listPersistentVolumeClaimsHandler).Methods("GET")
+	s.router.HandleFunc("/persistent-volume-claims/{id}", s.PermanentVolumeClaimHandler.deletePersistentVolumeClaimHandler).Methods("DELETE")
 	s.router.HandleFunc("/manifests", s.ManifestHandler.handleMadenResources).Methods("POST")
 }
 
