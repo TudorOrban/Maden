@@ -30,3 +30,11 @@ type ServiceUpdaterController interface {
 type PodUpdaterController interface {
 	HandlePodUpdate(oldKv *mvccpb.KeyValue, newKv *mvccpb.KeyValue)
 }
+
+type PersistentVolumeController interface {
+	HandleIncomingPersistentVolume(volumeSpec shared.PersistentVolumeSpec) error
+}
+
+type PersistentVolumeClaimController interface {
+	HandleIncomingPersistentVolumeClaim(volumeClaimSpec shared.PersistentVolumeClaimSpec) error
+}

@@ -16,13 +16,17 @@ import (
 type ManifestHandler struct {
 	DController controller.DeploymentController
 	SController controller.ServiceController
+	VController controller.PersistentVolumeController
+	VCController controller.PersistentVolumeClaimController
 }
 
 func NewManifestHandler(
 	dController controller.DeploymentController,
 	sController controller.ServiceController,
+	vController controller.PersistentVolumeController,
+	vcController controller.PersistentVolumeClaimController,
 ) *ManifestHandler {
-	return &ManifestHandler{DController: dController, SController: sController}
+	return &ManifestHandler{DController: dController, SController: sController, VController: vController, VCController: vcController}
 }
 
 func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +139,11 @@ func (h *ManifestHandler) handleIncomingPersistentVolume(resource shared.MadenRe
 		return err
 	}
 
-	// Implement logic to handle the persistent volume lifecycle
+	err = h.VController.HandleIncomingPersistentVolume(pvSpec)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -151,6 +159,10 @@ func (h *ManifestHandler) handleIncomingPersistentVolumeClaim(resource shared.Ma
 		return err
 	}
 
-	// Implement logic to bind PVC to PV and manage the lifecycle
+	err = h.VCController.HandleIncomingPersistentVolumeClaim(pvcSpec)
+	if err != nil {
+		return err
+	}
+	
 	return nil
 }

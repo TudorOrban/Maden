@@ -17,12 +17,12 @@ func (po *DefaultPersistentVolumeClaimOrchestrator) OrchestratePersistentVolumeC
 	var volumeClaimID = volumeClaimSpec.Name + shared.GenerateRandomString(10)
 
 	var volumeClaim = &shared.PersistentVolumeClaim{
-		ID:          volumeClaimID,
-		Name:        volumeClaimSpec.Name,
+		ID: volumeClaimID,
+		Name: volumeClaimSpec.Name,
 		AccessModes: volumeClaimSpec.AccessModes,
-		Resources:   volumeClaimSpec.Resources,
-		VolumeName:  volumeClaimSpec.VolumeName,
-	}
+		Resources: volumeClaimSpec.Resources,
+		VolumeName: volumeClaimSpec.VolumeName,
+	};
 
 	return po.Repo.CreatePersistentVolumeClaim(volumeClaim)
 }
@@ -31,12 +31,12 @@ func (po *DefaultPersistentVolumeClaimOrchestrator) OrchestratePersistentVolumeC
 	var volumeClaimID = volumeClaimSpec.Name + shared.GenerateRandomString(10)
 
 	var volumeClaim = &shared.PersistentVolumeClaim{
-		ID:          volumeClaimID,
-		Name:        volumeClaimSpec.Name,
+		ID: volumeClaimID,
+		Name: volumeClaimSpec.Name,
 		AccessModes: volumeClaimSpec.AccessModes,
-		Resources:   volumeClaimSpec.Resources,
-		VolumeName:  volumeClaimSpec.VolumeName,
-	}
+		Resources: volumeClaimSpec.Resources,
+		VolumeName: volumeClaimSpec.VolumeName,
+	};
 
 	return po.Repo.UpdatePersistentVolumeClaim(volumeClaim)
 }
