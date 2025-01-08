@@ -36,7 +36,6 @@ func (p *PodLifecycleManager) RunPod(pod *shared.Pod) {
 func (p *PodLifecycleManager) attemptContainerCreation(pod *shared.Pod, containerIndex int) *string {
 	pod.Status = shared.PodContainerCreating
 	if err := p.PodRepo.UpdatePod(pod); err != nil {
-		shared.Log.Errorf("Failed to update pod status: %v", err)
 		return nil
 	}
 
