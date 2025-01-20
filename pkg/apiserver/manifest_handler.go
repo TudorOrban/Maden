@@ -29,6 +29,9 @@ func NewManifestHandler(
 	return &ManifestHandler{DController: dController, SController: sController, VController: vController, VCController: vcController}
 }
 
+/*
+ * Handler responsible for allocating Maden resources according to a received manifest file
+ */
 func (h *ManifestHandler) handleMadenResources(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
